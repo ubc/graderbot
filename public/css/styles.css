@@ -1,0 +1,67 @@
+:root {
+	--background-color: rgb(188, 206, 223);
+	--text-color: rgb(30,30,30);
+	--success-color: rgb(46, 204, 113);
+	--warning-color: rgb(241, 196, 15);
+	--error-color: rgb(231, 76, 60);
+}
+
+/*
+ * Basic styles for the GraderBot page and Configuration page
+ */
+body {
+	font-family: Arial, sans-serif;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	margin: 0;
+	background-color: var(--background-color);
+	color: var(--text-color);
+	padding: 20px;
+	position: relative;
+	/* Ensure positioning relative to the body */
+}
+
+h1 {
+	margin-bottom: 20px;
+}
+
+#description {
+	font-size: 18px;
+	margin-bottom: 20px;
+}
+
+.selectable {
+	text-decoration: underline;
+	cursor: pointer;
+}
+
+.hidden {
+	display: none;
+}
+
+#options {
+	margin-top: 20px;
+}
+
+#option-select {
+	margin-right: 10px;
+}
+
+#config-link {
+	position: absolute;
+	bottom: 20px;
+	right: 20px;
+	width: 24px;
+	height: 24px;
+	cursor: pointer;
+}
+
+#config-link svg {
+	width: 100%;
+	height: 100%;
+}
+
+#config-link:hover svg {
+	stroke: #555;
+}
