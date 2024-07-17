@@ -25,3 +25,17 @@ A `notifications` strategy. Events are emitted, and then notifications (currentl
 Live Reload works for any changes to HTML, CSS, or JavaScript within the `public` directory.
 
 Settings from the `.ENV` file are loaded.
+
+## LocalStorage
+
+To view your browser's localStorage, open up the developer tools (often F12, or fn+F12 on a mac) and then type
+
+`console.log(localStorage);`
+
+and press return, to see your current localStorage. To remove a specific key, you'd do something like:
+
+`localStorage.removeItem('onboardingComplete');`
+
+which will remove the `onboardingComplete` key from your current browser window's localStorage.
+
+You will need to refresh afterwards to see any changes to the application.

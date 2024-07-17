@@ -4,22 +4,86 @@
 	--success-color: rgb(46, 204, 113);
 	--warning-color: rgb(241, 196, 15);
 	--error-color: rgb(231, 76, 60);
+
+	--flex-container-gap: 20px;
 }
 
-/*
- * Basic styles for the GraderBot page and Configuration page
+/**
+ * An automatically adjusting layout container (for between 1 and 4 boxes)
+ *
+ * With 1 item, it will always be full-width.
+ *
+ * With 2 items, on large and medium-sized screens, the boxes will be side-by-side.
+ * On small screens, the boxes will stack.
+ *
+ * When there are 3 or 4 boxes, on large screens, the boxes will be side-by-side.
+ * On medium-sized screens, there will be 2 rows: the first with n-1 boxes and the second with 1 full-width box.
+ * On small screens, they will all stack.
+ * This is the CSS Grid layout, however, below, commented out, is an option with flexbox.
+ *
+ */
+.layout-container {
+	display: grid;
+	gap: var(--flex-container-gap);
+	margin: 0 auto;
+}
+
+.box {
+	background-color: #f4f4f4;
+	padding: 20px;
+	border: 1px solid #ccc;
+	box-sizing: border-box;
+}
+
+/* Large screens: 1 row containing n equally wide boxes */
+@media (min-width: 1201px) {
+	.layout-container {
+		grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+	}
+}
+
+/* Medium screens: first row with n-1 boxes, second row with 1 box */
+@media (min-width: 801px) and (max-width: 1200px) {
+	.layout-container {
+		/* Assume default for up to 4 boxes (3 in the first row, 1 in the second) */
+		grid-template-columns: repeat(3, 1fr);
+		/* 3 columns for the first row */
+		grid-template-rows: auto auto;
+	}
+
+	.layout-container .box:last-child {
+		grid-column: 1 / -1;
+		/* Span across all columns in the second row */
+	}
+
+	.layout-container:has(.box:nth-child(3)):not(:has(.box:nth-child(4))) {
+		/* 2 boxes in the first row if there are 3 boxes */
+		grid-template-columns: repeat(2, 1fr);
+	}
+
+	.layout-container:has(.box:nth-child(2)):not(:has(.box:nth-child(3))) {
+		grid-template-columns: 1fr;
+	}
+}
+
+
+/* Small screens: stack all boxes */
+@media (max-width: 800px) {
+	.layout-container {
+		grid-template-columns: 1fr;
+		/* One column for stacking */
+	}
+}
+
+/**
+ * Everything here is going to be replaced. This is all just placeholder.
  */
 body {
 	font-family: Arial, sans-serif;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
 	margin: 0;
 	background-color: var(--background-color);
 	color: var(--text-color);
 	padding: 20px;
-	position: relative;
-	/* Ensure positioning relative to the body */
 }
 
 h1 {

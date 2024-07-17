@@ -1,4 +1,3 @@
-// notifications.js
 export class Notifications {
     static show(message, type = 'info') {
         Toastify({
