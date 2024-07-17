@@ -113,3 +113,7 @@ function showOptions(options, type) {
     optionsDiv.classList.remove('hidden'); // Show the options div
 }
 
+// Add this at the beginning of your main.js file
+if (window.location.pathname === '/welcome') {
+    window.location.href = '/welcome.html';
+}
