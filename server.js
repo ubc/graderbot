@@ -99,7 +99,7 @@ app.post('/upload-csv', upload.fields([{ name: 'csvFile1' }, { name: 'csvFile2' 
         Object.keys(files).forEach((key) => {
             const file = files[key][0];
             const filePath = file.path;
-            const json = csvToJson.fieldDelimiter(',').getJsonFromCsv(filePath);
+            const json = csvToJson.fieldDelimiter(',').supportQuotedField(true).getJsonFromCsv(filePath);
 
             jsonData[key] = json;
             fs.unlinkSync(filePath); // Delete the CSV file
