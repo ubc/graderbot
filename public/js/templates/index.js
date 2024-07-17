@@ -25,10 +25,10 @@ if (!storageManager.load('onboardingComplete')) {
  */
 document.addEventListener('DOMContentLoaded', () => {
 
-	// The button which triggers the example response.
+    // The button which triggers the example response.
     const generateButton = document.getElementById('generate-button');
 
-	// The container for the generated response.
+    // The container for the generated response.
     const responseContainer = document.getElementById('response-container');
 
     /**
@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     generateButton.addEventListener('click', async () => {
 
-		// Disable button to prevent multuple clicks. It's re-enabled after the response stream is complete or an error occurs.
+        // Disable button to prevent multiple clicks. It's re-enabled after the response stream is complete or an error occurs.
         generateButton.disabled = true;
 
         // Display loading message
@@ -77,34 +77,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Exit the loop if there are no more chunks to read
                 if (done) {
-					break;
-				}
+                    break;
+                }
 
-				// Decode the chunk into a string
+                // Decode the chunk into a string
                 const chunk = decoder.decode(value, { stream: true });
 
-				// Split the chunk into individual lines
-				const lines = chunk.split('\n');
+                // Split the chunk into individual lines
+                const lines = chunk.split('\n');
 
-				// Process each line separately
-				for (const line of lines) {
+                // Process each line separately
+                for (const line of lines) {
 
-					// Ignore empty or whitespace-only lines
+                    // Ignore empty or whitespace-only lines
                     if (line.trim()) {
                         try {
                             // Parse the JSON data from the line
                             const data = JSON.parse(line);
 
-							// If this is the first chunk, clear the loading message
+                            // If this is the first chunk, clear the loading message
                             if (firstChunk) {
                                 responseContainer.innerHTML = '';
                                 firstChunk = false;
                             }
 
-							// Append the 'response' property from the parsed data to the response container
+                            // Append the 'response' property from the parsed data to the response container
                             responseContainer.innerHTML += data.response;
 
-						} catch (error) {
+                        } catch (error) {
                             // Log an error if the line could not be parsed
                             logger.error('Error parsing line', line, error);
                         }
@@ -117,23 +117,43 @@ document.addEventListener('DOMContentLoaded', () => {
             logger.error('Error fetching or streaming response', error);
             responseContainer.innerHTML = 'Error fetching response. Please try again.';
 
-		} finally {
+        } finally {
 
-			// Re-enable the button after the response stream is complete or an error occurs
+            // Re-enable the button after the response stream is complete or an error occurs
             generateButton.disabled = false;
 
-		}
+        }
 
-	});
+    });
 
     // Handle CSV file uploads
     const uploadButton = document.getElementById('uploadButton');
+    const csvFile1 = document.getElementById('csvFile1');
+    const csvFile2 = document.getElementById('csvFile2');
+    const csvFile3 = document.getElementById('csvFile3');
+
+    // Disable the upload button by default
+    uploadButton.disabled = true;
+
+    // Function to check if all files are selected
+    const checkFilesSelected = () => {
+        if (csvFile1.files.length > 0 && csvFile2.files.length > 0 && csvFile3.files.length > 0) {
+            uploadButton.disabled = false;
+        } else {
+            uploadButton.disabled = true;
+        }
+    };
+
+    // Add event listeners to check files when they are selected
+    csvFile1.addEventListener('change', checkFilesSelected);
+    csvFile2.addEventListener('change', checkFilesSelected);
+    csvFile3.addEventListener('change', checkFilesSelected);
 
     uploadButton.addEventListener('click', async () => {
         const files = [
-            document.getElementById('csvFile1').files[0],
-            document.getElementById('csvFile2').files[0],
-            document.getElementById('csvFile3').files[0]
+            csvFile1.files[0],
+            csvFile2.files[0],
+            csvFile3.files[0]
         ];
 
         const formData = new FormData();
