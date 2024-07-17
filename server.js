@@ -2,7 +2,10 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
-import fetch from 'node-fetch'; // Ensure you have this installed
+import fetch from 'node-fetch';
+import multer from 'multer';
+import fs from 'fs';
+import csvToJson from 'convert-csv-to-json';
 
 dotenv.config();
 
@@ -18,6 +21,9 @@ app.use(express.json());
 
 // Serve static files from the 'public' directory
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Configure Multer for file uploads
+const upload = multer({ dest: 'uploads/' });
 
 // Handle the root route
 app.get('/', (req, res) => {
@@ -43,10 +49,12 @@ const logger = (debugMode, message, ...optionalParams) => {
 
 // Example endpoint to generate a response
 app.post('/generate', async (req, res) => {
-    const { debugMode } = req.body;
-    logger(debugMode, 'Request received for /generate'); // Log when request is received
+    const { debugMode, llmUrl } = req.body;
+    const url = llmUrl || 'http://localhost:11434/api/generate';
+    logger(debugMode, `Request received for /generate with URL: ${url}`); // Log when request is received
+
     try {
-        const response = await fetch('http://localhost:11434/api/generate', {
+        const response = await fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -77,6 +85,30 @@ app.post('/generate', async (req, res) => {
 
     } catch (error) {
         logger(debugMode, 'Error:', error); // Log any errors
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Endpoint to handle CSV file uploads
+app.post('/upload-csv', upload.fields([{ name: 'csvFile1' }, { name: 'csvFile2' }, { name: 'csvFile3' }]), (req, res) => {
+    const debugMode = req.body.debugMode === 'true';
+    const files = req.files;
+    const jsonData = {};
+
+    try {
+        Object.keys(files).forEach((key) => {
+            const file = files[key][0];
+            const filePath = file.path;
+            const json = csvToJson.fieldDelimiter(',').getJsonFromCsv(filePath);
+
+            jsonData[key] = json;
+            fs.unlinkSync(filePath); // Delete the CSV file
+        });
+
+        logger(debugMode, 'CSV files processed:', jsonData);
+        res.json(jsonData);
+    } catch (error) {
+        logger(debugMode, 'Error processing CSV files:', error);
         res.status(500).json({ error: error.message });
     }
 });

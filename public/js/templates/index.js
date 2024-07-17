@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
      * When the button is clicked, this function sends a POST request to the '/generate' endpoint,
      * reads the streaming response, and updates the response container with the generated text.
      */
-    document.getElementById('generate-button').addEventListener('click', async () => {
+    generateButton.addEventListener('click', async () => {
 
 		// Disable button to prevent multuple clicks. It's re-enabled after the response stream is complete or an error occurs.
         generateButton.disabled = true;
@@ -46,11 +46,20 @@ document.addEventListener('DOMContentLoaded', () => {
         responseContainer.innerHTML = 'Loading Response...';
 
         try {
+            const debugMode = storageManager.load('debug-mode');
+            const llmUrl = storageManager.load('llm-url') || 'http://localhost:11434/api/generate';
+            logger.log('Sending request to /generate'); // Log when request is sent
 
             // Send a POST request to the '/generate' endpoint
             const response = await fetch('/generate', {
-                method: 'POST'
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ debugMode, llmUrl })
             });
+
+            logger.log('Response received from /generate'); // Log when response is received
 
             // Create a reader to read the response stream
             const reader = response.body.getReader();
@@ -97,7 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 						} catch (error) {
                             // Log an error if the line could not be parsed
-                            console.error('Error parsing line', line, error);
+                            logger.error('Error parsing line', line, error);
                         }
                     }
                 }
@@ -105,7 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
 
             // Log any errors that occurred during the fetch or streaming process
-            console.error('Error fetching or streaming response', error);
+            logger.error('Error fetching or streaming response', error);
             responseContainer.innerHTML = 'Error fetching response. Please try again.';
 
 		} finally {
@@ -116,5 +125,35 @@ document.addEventListener('DOMContentLoaded', () => {
 		}
 
 	});
+
+    // Handle CSV file uploads
+    const uploadButton = document.getElementById('uploadButton');
+
+    uploadButton.addEventListener('click', async () => {
+        const files = [
+            document.getElementById('csvFile1').files[0],
+            document.getElementById('csvFile2').files[0],
+            document.getElementById('csvFile3').files[0]
+        ];
+
+        const formData = new FormData();
+        files.forEach((file, index) => {
+            if (file) {
+                formData.append(`csvFile${index + 1}`, file);
+            }
+        });
+
+        try {
+            const response = await fetch('/upload-csv', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+            logger.log('CSV files uploaded and processed:', result);
+        } catch (error) {
+            logger.error('Error uploading CSV files:', error);
+        }
+    });
 
 });

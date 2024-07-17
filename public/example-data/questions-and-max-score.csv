@@ -1,0 +1,6 @@
+Question Number,Question,Maximum Score
+1,"Describe the Singleton design pattern. What problem does it solve, and how is it typically implemented? Provide an example scenario where this pattern would be useful.",10
+2,Compare and contrast the imperative and declarative computational models. Provide examples of languages that use each model and discuss the advantages and disadvantages of both.,10
+3,"Explain the differences between an array and a linked list. Discuss the time complexity of common operations (insertion, deletion, and access) for both data structures. Provide examples of scenarios where each would be preferable.",15
+4,Describe the process of debugging in software development. Discuss the importance of using debugging tools and techniques. Provide an example of a common debugging technique and how it can help identify and fix bugs.,10
+5,"Explain the difference between unit testing, integration testing, and system testing. Discuss the role of automated testing in software development and provide an example of a testing framework or tool used for automated testing.",15
