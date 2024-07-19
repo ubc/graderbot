@@ -49,34 +49,34 @@ document.addEventListener('DOMContentLoaded', () => {
                 method: 'POST',
                 body: formData
             });
-
+    
             const processedData = await response.json();
             logger.log('CSV files uploaded and processed:', processedData);
             console.log('Processed CSV data:', processedData);
-
+    
             // Extract context data from local storage
             let selectedSenate     = storageManager.load('senate') || 'UBC Vancouver';
             let selectedDepartment = storageManager.load('department') || 'Computer Science';
             let selectedCourse     = storageManager.load('course') || 'CPSC210';
-
+    
             const contextData = {
                 senate: selectedSenate,
                 department: selectedDepartment,
                 course: selectedCourse,
             };
-
+    
             // Clear previous results
             responseContainer.innerHTML = '';
-
+    
             // Process each question for each student
             processedData.questions.forEach((questionData, questionIndex) => {
                 const question = questionData.question;
                 const maxScore = questionData.maxScore;
                 const gradingRubric = processedData.gradingRubrics[questionIndex]?.rubric || 'No rubric provided';
-
+    
                 processedData.studentAnswers.forEach((studentData) => {
                     const studentAnswer = studentData.answers[questionIndex + 1] || 'No answer provided';
-
+    
                     // Generate the prompt dynamically
                     const prompt = {
                         context: {
@@ -90,9 +90,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         },
                         instruction: `Provide the score out of ${maxScore}. Your answer should be only '{{score}}/${maxScore}'. Do not provide any reasoning or explanation, just the score.`
                     };
-
+    
                     console.log(`Prompt for Student ${studentData.studentNumber}, Question ${questionIndex + 1}:`, JSON.stringify(prompt, null, 2));
-
+    
                     // Send the generated prompt to /generate endpoint
                     fetch('/generate', {
                         method: 'POST',
@@ -109,7 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
                       });
                 });
             });
-
+    
         } catch (error) {
             logger.error('Error uploading CSV files:', error);
             responseContainer.innerHTML = 'Error uploading and processing CSV files. Please try again.';

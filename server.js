@@ -92,6 +92,7 @@ app.post('/generate', async (req, res) => {
     }
 });
 
+// Endpoint to handle CSV upload and conversion to JSON
 app.post('/upload-csv', upload.fields([{ name: 'csvFile1' }, { name: 'csvFile2' }, { name: 'csvFile3' }]), (req, res) => {
     const debugMode = req.body.debugMode === 'true';
     const files = req.files;
@@ -121,14 +122,19 @@ app.post('/upload-csv', upload.fields([{ name: 'csvFile1' }, { name: 'csvFile2' 
             // Delete the original and temporary CSV files
             fs.unlinkSync(filePath);
             fs.unlinkSync(tempFilePath);
+            console.log(jsonData);
         });
 
+        // Log the raw JSON data
+        logger(debugMode, 'Raw JSON Data:', JSON.stringify(jsonData, null, 2));
+        console.log('Raw JSON Data:', JSON.stringify(jsonData, null, 2));   
+        console.log(jsonData)
         // Process the JSON data to extract required information
         const processedData = {
-            questions: jsonData.csvFile1.map((item, index) => ({
-                questionNumber: parseInt(item['Question Number'], 10) || index + 1,
-                question: item['Question'],
-                maxScore: parseInt(item['Maximum Score'], 10)
+            questions: jsonData.csvFile1.map((item) => ({
+                questionNumber: item.QuestionNumber,
+                question: item.Question,
+                maxScore: item.MaximumScore
             })),
             gradingRubrics: jsonData.csvFile2.map((item, index) => ({
                 questionNumber: parseInt(item['Question Number'], 10) || index + 1,
@@ -138,20 +144,18 @@ app.post('/upload-csv', upload.fields([{ name: 'csvFile1' }, { name: 'csvFile2' 
                 const answers = {};
                 Object.keys(item).forEach((key) => {
                     if (key.startsWith('Question')) {
-                        const questionNumber = (key.split(' ')[1]);
-                        console.log('questionNumber:', questionNumber, 'key:', key);
-                        answers[questionNumber] = item[key];
-                        console.log('Answers:', answers);
+                        const questionNumber = key.split(' ')[1];
+                        answers[questionNumber] = item[key] || "No answer provided";
                     }
                 });
                 return {
-                    studentNumber: item.StudentNumber,
+                    studentNumber: item.StudentNumber || null,
                     answers: answers
                 };
             })
         };
 
-        logger(debugMode, 'CSV files processed:', processedData);
+        logger(debugMode, 'Processed CSV Data:', JSON.stringify(processedData, null, 2));
         res.json(processedData);
     } catch (error) {
         logger(debugMode, 'Error processing CSV files:', error);
