@@ -1,3 +1,4 @@
+//main.js
 import { LocalStorageStrategy } from './modules/storage/localStorageStrategy.js';
 import { StorageManager } from './modules/storage/storageManager.js';
 import { Notifications } from './modules/notifications/notifications.js';
@@ -112,4 +113,3 @@ function showOptions(options, type) {
     optionSelect.dataset.type = type; // Set the type in the dataset
     optionsDiv.classList.remove('hidden'); // Show the options div
 }
-

@@ -50,9 +50,11 @@ const logger = (debugMode, message, ...optionalParams) => {
 
 // Example endpoint to generate a response
 app.post('/generate', async (req, res) => {
-    const { debugMode, llmUrl } = req.body;
-    const url = llmUrl || 'http://localhost:11434/api/generate';
+    const { debugMode, prompt } = req.body;
+    const url = 'http://localhost:11434/api/generate';
     logger(debugMode, `Request received for /generate with URL: ${url}`); // Log when request is received
+
+    console.log('Generated Prompt:', JSON.stringify(prompt, null, 2)); // Log the generated prompt
 
     try {
         const response = await fetch(url, {
@@ -60,7 +62,7 @@ app.post('/generate', async (req, res) => {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ model: 'llama3', prompt: 'Why is the sky blue?' })
+            body: JSON.stringify({ model: 'llama3', prompt })
         });
 
         if (!response.ok) {
@@ -121,8 +123,36 @@ app.post('/upload-csv', upload.fields([{ name: 'csvFile1' }, { name: 'csvFile2' 
             fs.unlinkSync(tempFilePath);
         });
 
-        logger(debugMode, 'CSV files processed:', jsonData);
-        res.json(jsonData);
+        // Process the JSON data to extract required information
+        const processedData = {
+            questions: jsonData.csvFile1.map((item, index) => ({
+                questionNumber: parseInt(item['Question Number'], 10) || index + 1,
+                question: item['Question'],
+                maxScore: parseInt(item['Maximum Score'], 10)
+            })),
+            gradingRubrics: jsonData.csvFile2.map((item, index) => ({
+                questionNumber: parseInt(item['Question Number'], 10) || index + 1,
+                rubric: item['Grading Rubric'] || ""
+            })),
+            studentAnswers: jsonData.csvFile3.map((item) => {
+                const answers = {};
+                Object.keys(item).forEach((key) => {
+                    if (key.startsWith('Question')) {
+                        const questionNumber = (key.split(' ')[1]);
+                        console.log('questionNumber:', questionNumber, 'key:', key);
+                        answers[questionNumber] = item[key];
+                        console.log('Answers:', answers);
+                    }
+                });
+                return {
+                    studentNumber: item.StudentNumber,
+                    answers: answers
+                };
+            })
+        };
+
+        logger(debugMode, 'CSV files processed:', processedData);
+        res.json(processedData);
     } catch (error) {
         logger(debugMode, 'Error processing CSV files:', error);
         res.status(500).json({ error: error.message });

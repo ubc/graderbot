@@ -62,7 +62,7 @@ export function restoreNewlinesInJSON(jsonData) {
         // If the current element is neither a string, array, nor object, return it as is
         return obj;
     }
-
+    
     // Start the traversal and restoration process from the root of the JSON data
     return traverseAndRestore(jsonData);
 }
