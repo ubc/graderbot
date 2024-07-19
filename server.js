@@ -130,16 +130,23 @@ app.post('/upload-csv', upload.fields([{ name: 'csvFile1' }, { name: 'csvFile2' 
         console.log('Raw JSON Data:', JSON.stringify(jsonData, null, 2));   
         console.log(jsonData)
         // Process the JSON data to extract required information
+        const rubrics = [];
+
         const processedData = {
             questions: jsonData.csvFile1.map((item) => ({
                 questionNumber: item.QuestionNumber,
                 question: item.Question,
                 maxScore: item.MaximumScore
             })),
-            gradingRubrics: jsonData.csvFile2.map((item, index) => ({
-                questionNumber: parseInt(item['Question Number'], 10) || index + 1,
-                rubric: item['Grading Rubric'] || ""
-            })),
+            gradingRubrics: jsonData.csvFile2.map((item) => {
+                for (let i = 1; i <= 16; i++) {        
+                        rubrics.push(item[i]);
+                }
+                return {
+                    questionNumber: item.QuestionNumber,
+                    rubric: rubrics
+                };
+            }),
             studentAnswers: jsonData.csvFile3.map((item) => {
                 const answers = {};
                 Object.keys(item).forEach((key) => {
