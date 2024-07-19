@@ -50,11 +50,23 @@ const logger = (debugMode, message, ...optionalParams) => {
 
 // Example endpoint to generate a response
 app.post('/generate', async (req, res) => {
-    const { debugMode, prompt } = req.body;
-    const url = 'http://localhost:11434/api/generate';
+    const { debugMode, llmUrl } = req.body;
+    const url = llmUrl || 'http://localhost:11434/api/generate';
     logger(debugMode, `Request received for /generate with URL: ${url}`); // Log when request is received
 
-    console.log('Generated Prompt:', JSON.stringify(prompt, null, 2)); // Log the generated prompt
+    // Retrieve the stored prompt
+    let storedPrompt;
+    try {
+        storedPrompt = JSON.parse(fs.readFileSync(path.join(__dirname, 'storedPrompt.json'), 'utf8'));
+    } catch (error) {
+        if (error.code === 'ENOENT') {
+            logger(debugMode, 'Stored prompt file not found. Ensure it is saved before generating a response.');
+            return res.status(500).json({ error: 'Stored prompt file not found. Please save a prompt first.' });
+        } else {
+            logger(debugMode, 'Error reading stored prompt:', error);
+            return res.status(500).json({ error: 'Failed to read stored prompt' });
+        }
+    }
 
     try {
         const response = await fetch(url, {
@@ -62,7 +74,7 @@ app.post('/generate', async (req, res) => {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ model: 'llama3', prompt })
+            body: JSON.stringify({ model: 'llama3', prompt: storedPrompt })
         });
 
         if (!response.ok) {
@@ -93,6 +105,8 @@ app.post('/generate', async (req, res) => {
 });
 
 // Endpoint to handle CSV upload and conversion to JSON
+// Endpoint to handle CSV upload and conversion to JSON
+// Endpoint to handle CSV upload and conversion to JSON
 app.post('/upload-csv', upload.fields([{ name: 'csvFile1' }, { name: 'csvFile2' }, { name: 'csvFile3' }]), (req, res) => {
     const debugMode = req.body.debugMode === 'true';
     const files = req.files;
@@ -122,36 +136,39 @@ app.post('/upload-csv', upload.fields([{ name: 'csvFile1' }, { name: 'csvFile2' 
             // Delete the original and temporary CSV files
             fs.unlinkSync(filePath);
             fs.unlinkSync(tempFilePath);
-            console.log(jsonData);
         });
 
         // Log the raw JSON data
         logger(debugMode, 'Raw JSON Data:', JSON.stringify(jsonData, null, 2));
-        console.log('Raw JSON Data:', JSON.stringify(jsonData, null, 2));   
-        console.log(jsonData)
-        // Process the JSON data to extract required information
-        const rubrics = [];
 
+        // Process the JSON data to extract required information
         const processedData = {
             questions: jsonData.csvFile1.map((item) => ({
-                questionNumber: item.QuestionNumber,
+                questionNumber: item['Question Number'],
                 question: item.Question,
                 maxScore: item.MaximumScore
             })),
             gradingRubrics: jsonData.csvFile2.map((item) => {
-                for (let i = 1; i <= 16; i++) {        
-                        rubrics.push(item[i]);
-                }
+                const rubrics = [];
+                Object.keys(item).forEach((key, index) => {
+                    if (key.startsWith('Rubric')) {
+                        const score = index; // Ensure the score matches the array index + 1
+                        rubrics.push({
+                            score: score,
+                            answer: item[key]
+                        });
+                    }
+                });
                 return {
-                    questionNumber: item.QuestionNumber,
+                    questionNumber: item['Question Number'],
                     rubric: rubrics
                 };
             }),
             studentAnswers: jsonData.csvFile3.map((item) => {
                 const answers = {};
                 Object.keys(item).forEach((key) => {
-                    if (key.startsWith('Question')) {
-                        const questionNumber = key.split(' ')[1];
+                    if (key.startsWith('Question') && key.endsWith('Answer')) {
+                        const questionNumber = key.replace('Question', '').replace('Answer', '');
                         answers[questionNumber] = item[key] || "No answer provided";
                     }
                 });
@@ -167,6 +184,18 @@ app.post('/upload-csv', upload.fields([{ name: 'csvFile1' }, { name: 'csvFile2' 
     } catch (error) {
         logger(debugMode, 'Error processing CSV files:', error);
         res.status(500).json({ error: error.message });
+    }
+});
+
+// Endpoint to save prompt to a file
+app.post('/save-prompt', (req, res) => {
+    const { prompt } = req.body;
+    try {
+        fs.writeFileSync(path.join(__dirname, 'storedPrompt.json'), JSON.stringify(prompt));
+        res.status(200).json({ message: 'Prompt saved successfully' });
+    } catch (error) {
+        logger(true, 'Error saving prompt:', error);
+        res.status(500).json({ error: 'Failed to save prompt' });
     }
 });
 
