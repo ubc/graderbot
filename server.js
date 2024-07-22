@@ -53,28 +53,91 @@ app.post('/generate', async (req, res) => {
     const { debugMode, llmUrl } = req.body;
     const url = llmUrl || 'http://localhost:11434/api/generate';
     logger(debugMode, `Request received for /generate with URL: ${url}`); // Log when request is received
-
-    // Retrieve the stored prompt
-    let storedPrompt;
-    try {
-        storedPrompt = JSON.parse(fs.readFileSync(path.join(__dirname, 'storedPrompt.json'), 'utf8'));
-    } catch (error) {
-        if (error.code === 'ENOENT') {
-            logger(debugMode, 'Stored prompt file not found. Ensure it is saved before generating a response.');
-            return res.status(500).json({ error: 'Stored prompt file not found. Please save a prompt first.' });
-        } else {
-            logger(debugMode, 'Error reading stored prompt:', error);
-            return res.status(500).json({ error: 'Failed to read stored prompt' });
-        }
-    }
-
+    let prompt = `Prompt for Student 9289673441, Question 5: {
+        "context": {
+          "senate": "UBC Vancouver",
+          "department": "Computer Science",
+          "course": "CPSC210",
+          "question": "Explain the difference between unit testing, integration testing, and system testing. Discuss the role of automated testing in software development and provide an example of a testing framework or tool used for automated testing.",
+          "max_score": "15"
+        },
+        "grading_rubric": [
+          {
+            "score": 1,
+            "answer": ""
+          },
+          {
+            "score": 2,
+            "answer": ""
+          },
+          {
+            "score": 3,
+            "answer": "Unit testing tests individual components. Integration testing checks if components work together. System testing tests the whole system. Automated testing runs tests automatically. JUnit is a tool for automated testing."
+          },
+          {
+            "score": 4,
+            "answer": ""
+          },
+          {
+            "score": 5,
+            "answer": ""
+          },
+          {
+            "score": 6,
+            "answer": "Unit testing tests individual components. Integration testing checks if components work together. System testing tests the whole system. Automated testing helps run tests automatically. JUnit is an automated testing tool used in Java."
+          },
+          {
+            "score": 7,
+            "answer": ""
+          },
+          {
+            "score": 8,
+            "answer": ""
+          },
+          {
+            "score": 9,
+            "answer": "Unit testing focuses on testing individual components or functions to ensure they work correctly. Integration testing checks if multiple components work together as expected. System testing evaluates the entire system's compliance with the requirements.\\n\\nAutomated testing is crucial in software development as it allows for frequent and consistent execution of tests, improving efficiency and reliability. For example, JUnit is a popular framework for automated testing in Java. It allows developers to write and run repeatable tests easily."
+          },
+          {
+            "score": 10,
+            "answer": ""
+          },
+          {
+            "score": 11,
+            "answer": ""
+          },
+          {
+            "score": 12,
+            "answer": "Unit testing involves testing individual components or functions in isolation to verify their correctness. Integration testing checks if different components of the system work together correctly. System testing evaluates the entire system's compliance with the specified requirements.\\n\\nAutomated testing plays a vital role in software development. It enables developers to run tests quickly and consistently, which helps catch bugs early and ensures that new code changes do not break existing functionality. Automated tests can be run frequently, such as after every code commit or in a continuous integration pipeline, improving the overall quality of the software.\\n\\nJUnit is a widely used framework for automated testing in Java. It provides annotations to identify test methods, setup and teardown processes for test environments, and assertions to check expected outcomes. This helps streamline the testing process and makes it easier to maintain a robust suite of tests."
+          },
+          {
+            "score": 13,
+            "answer": ""
+          },
+          {
+            "score": 14,
+            "answer": ""
+          },
+          {
+            "score": 15,
+            "answer": "Unit testing, integration testing, and system testing are essential components of a comprehensive testing strategy in software development.\\n\\nUnit Testing: This level of testing focuses on individual components or functions in isolation to ensure they work correctly. Each unit test verifies a small part of the application's functionality, usually in a single class or function. Unit tests are typically written by developers and run frequently to catch bugs early.\\n\\nIntegration Testing: Integration testing checks if different components of the system interact and work together correctly. This testing level ensures that interfaces between components are working as expected. It helps identify issues related to data flow and interactions between modules that might not be evident in unit testing.\\n\\nSystem Testing: System testing evaluates the entire system's compliance with the specified requirements. This level of testing validates the complete and integrated software product to ensure it meets the business needs and works as expected in a production-like environment.\\n\\nRole of Automated Testing:\\nAutomated testing is crucial in modern software development due to its ability to run tests quickly, frequently, and consistently. It enhances the efficiency of the development process by:\\n\\n    Reducing Manual Effort: Automated tests can run repeatedly without manual intervention, saving time and effort.\\n    Increasing Test Coverage: Automated tests can cover a wide range of scenarios and edge cases that might be missed in manual testing.\\n    Ensuring Continuous Quality: Automated testing is an integral part of continuous integration/continuous deployment (CI/CD) pipelines, ensuring that code changes do not introduce new bugs.\\n\\nExample Framework: JUnit\\nJUnit is a popular framework for automated testing in Java. It provides a structured and efficient way to write and run tests. Key features of JUnit include:\\n\\n    Annotations: Identify test methods (@Test), setup (@Before), and teardown (@After) methods.\\n    Assertions: Check expected outcomes using methods like assertEquals(), assertTrue(), and assertNotNull().\\n    Test Runners: Execute tests and report results."
+          }
+        ],
+        "student_response": {
+          "answer": "Unit testing involves testing individual components or functions in isolation to verify their correctness. Integration testing checks if different components of the system work together correctly. System testing evaluates the entire system's compliance with the specified requirements.\\n\\nAutomated testing plays a vital role in software development. It enables developers to run tests quickly and consistently, which helps catch bugs early and ensures that new code changes do not break existing functionality. Automated tests can be run frequently, such as after every code commit or in a continuous integration pipeline, improving the overall quality of the software.\\n\\nJUnit is a widely used framework for automated testing in Java. It provides annotations to identify test methods, setup and teardown processes for test environments, and assertions to check expected outcomes. This helps streamline the testing process and makes it easier to maintain a robust suite of tests."
+        },
+        "instruction": "Your answer should be only '{{score}}/{{max_score}}'. Do not provide any reasoning or explanation, just the score.\\nYou are tasked with grading student answers based on the provided grading rubric. Each entry in the grading rubric corresponds to a score. Some fields in the rubric are left blank, indicating that you should extrapolate what a response for that score might look like based on the provided examples.\\n\\nGuidelines for Grading:\\n\\nCompare the student's response to the examples in the rubric.\\nAssess how well the response covers the key concepts mentioned in the question.\\nEvaluate the clarity, completeness, and accuracy of the explanation.\\nConsider the depth of detail provided about any examples or tools mentioned.\\nAssign the score that best matches the quality of the response according to the rubric.\\nProvide the score out of {{max_score}}. Your answer should be only '{{score}}/{{max_score}}'. Do not provide any reasoning or explanation, just the score."
+      }`;
+      
+      console.log(prompt);      
+    
     try {
         const response = await fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ model: 'llama3', prompt: storedPrompt })
+            body: JSON.stringify({ model: 'llama3', prompt: prompt })
         });
 
         if (!response.ok) {
