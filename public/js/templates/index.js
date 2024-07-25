@@ -34,12 +34,12 @@ document.addEventListener('DOMContentLoaded', () => {
     /**
      * Event listener for the 'Generate Response' button click event.
      *
-     * When the button is clicked, this function sends a POST request to the '/generate' endpoint,
-     * reads the streaming response, and updates the response container with the generated text.
+     * When the button is clicked, this function sends a POST request to the '/generate' endpoint
+     * and updates the response container with the generated text.
      */
     generateButton.addEventListener('click', async () => {
 
-        // Disable button to prevent multiple clicks. It's re-enabled after the response stream is complete or an error occurs.
+        // Disable button to prevent multiple clicks. It's re-enabled after the response is received or an error occurs.
         generateButton.disabled = true;
 
         // Display loading message
@@ -48,6 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const debugMode = storageManager.load('debug-mode');
             const llmUrl = storageManager.load('llm-url') || 'http://localhost:11434/api/generate';
+            const prompt = 'What is 2 + 2? respond in JSON';
             logger.log('Sending request to /generate'); // Log when request is sent
 
             // Send a POST request to the '/generate' endpoint
@@ -56,70 +57,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ debugMode, llmUrl })
+                body: JSON.stringify({ debugMode, llmUrl, prompt })
             });
 
             logger.log('Response received from /generate'); // Log when response is received
 
-            // Create a reader to read the response stream
-            const reader = response.body.getReader();
-
-            // Create a TextDecoder to decode the streamed text data
-            const decoder = new TextDecoder('utf-8');
-
-            // Variable to check if this is the first chunk of the response
-            let firstChunk = true;
-
-            while (true) {
-
-                // Read the next chunk from the stream
-                const { done, value } = await reader.read();
-
-                // Exit the loop if there are no more chunks to read
-                if (done) {
-                    break;
-                }
-
-                // Decode the chunk into a string
-                const chunk = decoder.decode(value, { stream: true });
-
-                // Split the chunk into individual lines
-                const lines = chunk.split('\n');
-
-                // Process each line separately
-                for (const line of lines) {
-
-                    // Ignore empty or whitespace-only lines
-                    if (line.trim()) {
-                        try {
-                            // Parse the JSON data from the line
-                            const data = JSON.parse(line);
-
-                            // If this is the first chunk, clear the loading message
-                            if (firstChunk) {
-                                responseContainer.innerHTML = '';
-                                firstChunk = false;
-                            }
-
-                            // Append the 'response' property from the parsed data to the response container
-                            responseContainer.innerHTML += data.response;
-
-                        } catch (error) {
-                            // Log an error if the line could not be parsed
-                            logger.error('Error parsing line', line, error);
-                        }
-                    }
-                }
+            if (!response.ok) {
+                throw new Error(`Server responded with ${response.status}`);
             }
+
+            // Parse the JSON response
+            const data = await response.json();
+
+            // Display the response
+            responseContainer.innerHTML = data.response;
+
         } catch (error) {
 
-            // Log any errors that occurred during the fetch or streaming process
-            logger.error('Error fetching or streaming response', error);
+            // Log any errors that occurred during the fetch process
+            logger.error('Error fetching response', error);
             responseContainer.innerHTML = 'Error fetching response. Please try again.';
 
         } finally {
 
-            // Re-enable the button after the response stream is complete or an error occurs
+            // Re-enable the button after the response is received or an error occurs
             generateButton.disabled = false;
 
         }
@@ -171,6 +132,62 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const result = await response.json();
             logger.log('CSV files uploaded and processed:', result);
+
+			let jsonDataFromCSVs = result;
+
+			let questionsAndMaxScores = jsonDataFromCSVs.csvFile1;
+			let gradingScheme         = jsonDataFromCSVs.csvFile2;
+			let studentResponses      = jsonDataFromCSVs.csvFile3;
+
+			let q1MaxScore      = questionsAndMaxScores[0].MaximumScore;
+			let q1Question      = questionsAndMaxScores[0].Question;
+			let q1GradingScheme = gradingScheme[0];
+			let q1s1Response    = studentResponses[0].Question1Answer;
+
+			console.log([q1Question, q1MaxScore, q1GradingScheme, q1s1Response]);
+
+			let prompt = `
+                You are tasked with grading student answers based on the provided grading rubric. Each entry in the grading rubric corresponds to a score. Some fields in the rubric are left blank, indicating that you should extrapolate what a response for that score might look like based on the provided examples.
+
+                Guidelines for Grading:
+
+                - Compare the student's response to the examples in the rubric.
+                - Assess how well the response covers the key concepts mentioned in the question.
+                - Evaluate the clarity, completeness, and accuracy of the explanation.
+                - Consider the depth of detail provided about any examples or tools mentioned.
+                - Assign the score that best matches the quality of the response according to the rubric.
+
+                Question: ${q1Question}
+                Rubric: ${JSON.stringify(q1GradingScheme, null, 2)}
+                Answer: ${q1s1Response}
+
+                The maximum score for this question is ${q1MaxScore}. Do not provide any reasoning. Answer in JSON like this:
+                {score: '{YOUR SCORE}', maximumScore: ${q1MaxScore}}
+            `;
+
+			// Log the prompt to ensure it's correct
+            console.log(prompt);
+
+			const debugMode = storageManager.load('debug-mode');
+            const llmUrl = storageManager.load('llm-url') || 'http://localhost:11434/api/generate';
+
+            // Send the prompt to the LLM endpoint
+            const llmResponse = await fetch('/generate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ debugMode: debugMode, llmUrl: llmUrl, prompt: prompt.trim() }) // Trimming the prompt to remove any unnecessary whitespace
+            });
+
+            if (!llmResponse.ok) {
+                throw new Error(`Server responded with ${llmResponse.status}`);
+            }
+
+            const llmData = await llmResponse.json();
+            responseContainer.innerHTML = llmData.response;
+
+
         } catch (error) {
             logger.error('Error uploading CSV files:', error);
         }

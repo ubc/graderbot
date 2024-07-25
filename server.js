@@ -50,9 +50,20 @@ const logger = (debugMode, message, ...optionalParams) => {
 
 // Example endpoint to generate a response
 app.post('/generate', async (req, res) => {
-    const { debugMode, llmUrl } = req.body;
+    const { debugMode, llmUrl, prompt } = req.body;
     const url = llmUrl || 'http://localhost:11434/api/generate';
     logger(debugMode, `Request received for /generate with URL: ${url}`); // Log when request is received
+
+    const toSendToLLM = {
+        model: 'llama3.1',
+        prompt: prompt,
+        stream: false,
+        format: 'json',
+        options: {
+            temperature: 0,
+			num_ctx: 16384
+        }
+    };
 
     try {
         const response = await fetch(url, {
@@ -60,7 +71,7 @@ app.post('/generate', async (req, res) => {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ model: 'llama3', prompt: 'Why is the sky blue?' })
+            body: JSON.stringify(toSendToLLM)
         });
 
         if (!response.ok) {
@@ -69,20 +80,8 @@ app.post('/generate', async (req, res) => {
 
         logger(debugMode, 'Response from external API received'); // Log when response is received
 
-        // Set headers to ensure the response is treated as streaming
-        res.setHeader('Content-Type', 'application/json');
-        res.setHeader('Transfer-Encoding', 'chunked');
-
-        // Use response.body directly as a stream
-        response.body.pipe(res);
-
-        response.body.on('data', chunk => {
-            logger(debugMode, 'Chunk received:', chunk.toString()); // Log each chunk
-        });
-
-        response.body.on('end', () => {
-            logger(debugMode, 'Response streaming completed'); // Log when response streaming is complete
-        });
+        const jsonResponse = await response.json();
+        res.json(jsonResponse);
 
     } catch (error) {
         logger(debugMode, 'Error:', error); // Log any errors
