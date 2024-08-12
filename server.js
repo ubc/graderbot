@@ -4,9 +4,7 @@ import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import fetch from 'node-fetch';
 import multer from 'multer';
-import fs from 'fs';
-import csvToJson from 'convert-csv-to-json';
-import { cleanCSVData, restoreNewlinesInJSON } from './server_modules/csv/utils.js';
+import processCSV  from './server_modules/csv/processCSV.js';
 
 dotenv.config();
 
@@ -95,30 +93,7 @@ app.post('/upload-csv', upload.fields([{ name: 'csvFile1' }, { name: 'csvFile2' 
     const jsonData = {};
 
     try {
-        Object.keys(files).forEach((key) => {
-            const file = files[key][0];
-            const filePath = file.path;
-
-            // Read the CSV file content
-            const csvString = fs.readFileSync(filePath, 'utf-8');
-
-            // Clean the CSV data
-            const cleanedCSVString = cleanCSVData(csvString);
-
-            // Save the cleaned CSV data to a temporary file
-            const tempFilePath = filePath + '.tmp';
-            fs.writeFileSync(tempFilePath, cleanedCSVString);
-
-            // Convert cleaned CSV to JSON
-            const json = csvToJson.fieldDelimiter(',').supportQuotedField(true).getJsonFromCsv(tempFilePath);
-
-            // Restore newlines in JSON data
-            jsonData[key] = restoreNewlinesInJSON(json);
-
-            // Delete the original and temporary CSV files
-            fs.unlinkSync(filePath);
-            fs.unlinkSync(tempFilePath);
-        });
+      processCSV(files, jsonData, debugMode);
 
         logger(debugMode, 'CSV files processed:', jsonData);
         res.json(jsonData);
