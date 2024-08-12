@@ -1,59 +1,56 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>GraderBot</title>
-	<link rel="stylesheet" href="css/styles.css">
-	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
-	<link rel="icon" type="image/x-icon" href="favicon.ico">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GraderBot</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
 </head>
-
 <body>
+    <div class="container">
+        <h1>GraderBot</h1>
+        <p id="description">I am grading student's answers for a course at <span id="senate" class="selectable">UBC VANCOUVER</span> within <span id="department" class="selectable">COMPUTER SCIENCE</span>. The course is <span id="course" class="selectable">CPSC210</span>.</p>
 
-	<h1>GraderBot</h1>
+        <div id="options" class="hidden">
+            <select id="option-select"></select>
+            <button id="option-save">Save</button>
+        </div>
 
-	<p id="description">I am grading student's answers for a course at <span id="senate" class="selectable">UBC VANCOUVER</span> within <span id="department" class="selectable">COMPUTER SCIENCE</span>. The course is <span id="course" class="selectable">CPSC210</span>.</p>
+        <div id="upload-container" class="layout-container">
+            <div class="box">
+                <h2>Upload Questions with Max Scores</h2>
+                <p class="upload-details">Details here about this</p>
+                <input type="file" id="csvFile1" accept=".csv">
+            </div>
+            <div class="box">
+                <h2>Upload Grading Scheme</h2>
+                <p class="upload-details">Details here about this</p>
+                <input type="file" id="csvFile2" accept=".csv">
+            </div>
+            <div class="box">
+                <h2>Upload Student Responses</h2>
+                <p class="upload-details">Details here about this</p>
+                <input type="file" id="csvFile3" accept=".csv">
+            </div>
+        </div>
 
-	<div id="options" class="hidden">
-		<select id="option-select"></select>
-		<button id="option-save">Save</button>
-	</div>
+        <button id="uploadButton" disabled>Upload CSVs</button>
+        <button id="generate-button">Get Responses</button>
+        <div id="response-container"></div>
+        <button id="export-button" style="margin-top: 20px;">Export as CSV</button>
 
-	<div id="upload-container" class="layout-container">
-		<div class="box">
-			<h2>Upload Questions with Max Scores</h2>
-			<p class="upload-details">Details here about this</p>
-			<input type="file" id="csvFile1" accept=".csv">
-		</div>
-		<div class="box">
-			<h2>Upload Grading Scheme</h2>
-			<p class="upload-details">Details here about this</p>
-			<input type="file" id="csvFile2" accept=".csv">
-		</div>
-		<div class="box">
-			<h2>Upload Student Responses</h2>
-			<p class="upload-details">Details here about this</p>
-			<input type="file" id="csvFile3" accept=".csv">
-		</div>
-	</div>
+        <a href="/config" id="config-link">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-settings">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+        </a>
+    </div>
 
-	<button id="uploadButton" disabled>Upload CSVs</button>
-
-	<button id="generate-button">Get Responses</button>
-	<div id="response-container"></div>
-
-	<a href="/config" id="config-link">
-		<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-settings">
-			<circle cx="12" cy="12" r="3"></circle>
-			<path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-		</svg>
-	</a>
-
-	<script type="module" src="js/main.js"></script>
-	<script type="module" src="js/templates/index.js"></script>
-	<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script type="module" src="js/main.js"></script>
+    <script type="module" src="js/templates/index.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 </body>
-
 </html>
