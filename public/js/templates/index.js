@@ -12,50 +12,35 @@ if (!storageManager.load('onboardingComplete')) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    const generateButton = document.getElementById('generate-button');
+    const generateButton = document.getElementById('generateButton');
     const responseContainer = document.getElementById('response-container');
     const exportButton = document.getElementById('export-button');
-    let allResponses = [];
-
-    generateButton.addEventListener('click', async () => {
-        generateButton.disabled = true;
-        responseContainer.innerHTML = 'Loading Response...';
-
-        try {
-            const debugMode = storageManager.load('debug-mode');
-            const llmUrl = storageManager.load('llm-url') || 'http://localhost:11434/api/generate';
-            logger.log('Sending request to /generate');
-
-            const response = await fetch('/generate', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ debugMode, llmUrl, prompt })
-            });
-
-            logger.log('Response received from /generate');
-            if (!response.ok) {
-                throw new Error(`Server responded with ${response.status}`);
-            }
-
-            const data = await response.json();
-            console.log('Response data:', data);
-            allResponses = [data.response];
-            renderResponses(allResponses, responseContainer);
-        } catch (error) {
-            logger.error('Error fetching response', error);
-            responseContainer.innerHTML = 'Error fetching response. Please try again.';
-        } finally {
-            generateButton.disabled = false;
-        }
-    });
-
     const uploadButton = document.getElementById('uploadButton');
+    const progressContainer = document.getElementById('progress-container');
     const csvFile1 = document.getElementById('csvFile1');
     const csvFile2 = document.getElementById('csvFile2');
     const csvFile3 = document.getElementById('csvFile3');
 
+    let prompts = [];
+    let studentNumbers = [];
+    let allResponses = [];
+
+    // Debugging logs to check if elements are correctly referenced
+    console.log('generateButton:', generateButton);
+    console.log('responseContainer:', responseContainer);
+    console.log('exportButton:', exportButton);
+    console.log('uploadButton:', uploadButton);
+    console.log('progressContainer:', progressContainer);
+    console.log('csvFile1:', csvFile1);
+    console.log('csvFile2:', csvFile2);
+    console.log('csvFile3:', csvFile3);
+    
+    if (!generateButton || !responseContainer || !exportButton || !uploadButton || !progressContainer || !csvFile1 || !csvFile2 || !csvFile3) {
+        console.error("One or more elements are not properly referenced!");
+        return;
+    }
+    
+    // Disable the Upload button until all files are selected
     uploadButton.disabled = true;
 
     const checkFilesSelected = () => {
@@ -66,6 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
     csvFile2.addEventListener('change', checkFilesSelected);
     csvFile3.addEventListener('change', checkFilesSelected);
 
+    // Upload button event
     uploadButton.addEventListener('click', async () => {
         console.log('Upload button clicked');
         const files = [csvFile1.files[0], csvFile2.files[0], csvFile3.files[0]];
@@ -90,16 +76,48 @@ document.addEventListener('DOMContentLoaded', () => {
             const gradingScheme = result.csvFile2;
             const studentResponses = result.csvFile3;
 
-            const prompts = createPrompts(questionsAndMaxScores, gradingScheme, studentResponses);
+            // Generate prompts here
+            const promptData = createPrompts(questionsAndMaxScores, gradingScheme, studentResponses);
+            prompts = promptData.prompts;
+            studentNumbers = promptData.studentNumbers;
+
             console.log('Prompts created:', prompts);
-            const responses = await processAllPrompts(prompts, logger);
-            allResponses = responses;
-            renderResponses(responses, responseContainer);
+            console.log('Student numbers:', studentNumbers);
+
+            // Enable the Generate button after prompts are ready
+            generateButton.disabled = false;
+
         } catch (error) {
             logger.error('Error uploading CSV files:', error);
         }
     });
 
+
+// Generate button event
+generateButton.addEventListener('click', async () => {
+    generateButton.disabled = true;
+    //responseContainer.innerHTML = 'Loading Response...';
+
+    // Ensure the progress bar is visible
+    progressContainer.classList.remove('hidden');
+    updateProgressBar(0, prompts.length); // Initialize progress bar
+
+    try {
+        const responses = await processAllPrompts(prompts, logger, studentNumbers);
+        allResponses = responses;
+        renderResponses(responses, responseContainer);
+
+    } catch (error) {
+        logger.error('Error fetching response', error);
+        responseContainer.innerHTML = 'Error fetching response. Please try again.';
+    } finally {
+        generateButton.disabled = false;
+        progressContainer.classList.add('hidden'); // Hide progress bar when done
+    }
+});
+
+
+    // Export to CSV button event
     exportButton.addEventListener('click', () => {
         exportToCSV(allResponses);
     });
@@ -107,12 +125,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function createPrompts(questionsAndMaxScores, gradingScheme, studentResponses) {
     let prompts = [];
+    let studentNumbers = [];
+
     for (let i = 0; i < questionsAndMaxScores.length; i++) {
         for (let j = 0; j < studentResponses.length; j++) {
             let question = questionsAndMaxScores[i].Question;
             let maxScore = questionsAndMaxScores[i].MaximumScore;
             let scheme = gradingScheme[i];
             let response = studentResponses[j][`Question${i + 1}Answer`];
+            let studentNumber = studentResponses[j].StudentNumber;
 
             let prompt = `
                 You are tasked with grading student answers based on the provided grading rubric. Each entry in the grading rubric corresponds to a score. Some fields in the rubric are left blank, indicating that you should extrapolate what a response for that score might look like based on the provided examples.
@@ -130,19 +151,26 @@ function createPrompts(questionsAndMaxScores, gradingScheme, studentResponses) {
                 The maximum score for this question is ${maxScore}. Do not provide any reasoning. Answer in JSON like this:
                 {score: '{YOUR SCORE}', maximumScore: ${maxScore}}
             `;
+
             prompts.push(prompt);
+            studentNumbers.push(studentNumber);
         }
     }
+
     console.log('Prompts:', prompts);
-    return prompts;
+    return { prompts, studentNumbers };
 }
 
-async function processAllPrompts(prompts, logger) {
+async function processAllPrompts(prompts, logger, studentNumbers) {
     const debugMode = storageManager.load('debug-mode');
     const llmUrl = storageManager.load('llm-url') || 'http://localhost:11434/api/generate';
     let responses = [];
+    const totalPrompts = prompts.length;
 
-    for (let prompt of prompts) {
+    for (let i = 0; i < prompts.length; i++) {
+        const prompt = prompts[i];
+        const studentNumber = studentNumbers[i];
+
         try {
             console.log('Sending prompt:', prompt);
             const response = await fetch('/generate', {
@@ -159,27 +187,65 @@ async function processAllPrompts(prompts, logger) {
 
             const data = await response.json();
             console.log('Response data for prompt:', data);
-            responses.push(data.response);
+            responses.push({ studentNumber, response: data.response });
+
+            // Render the current response now
+            renderResponse(data.response, studentNumber, document.getElementById('response-container'));
+
+            // Update the progress bar
+            updateProgressBar(i + 1, totalPrompts);
+
         } catch (error) {
             logger.error('Error processing prompt:', error);
+            renderResponse(`Error processing response for student number: ${studentNumber}`, studentNumber, document.getElementById('response-container'));
         }
     }
+
     console.log('All responses:', responses);
     return responses;
 }
 
+function updateProgressBar(completed, total) {
+    const progressBarFill = document.getElementById('progress-bar-fill');
+    const progressPercentage = document.getElementById('progress-percentage');
+    const percentage = Math.round((completed / total) * 100);
+
+    progressBarFill.style.width = `${percentage}%`;
+    progressPercentage.textContent = `${percentage}%`;
+}
+
+
+function renderResponse(response, studentNumber, container) {
+    const responseElement = document.createElement('div');
+    responseElement.classList.add('response');
+    responseElement.innerHTML = `<h3>Response for student number: ${studentNumber}</h3><p>${response}</p>`;
+    container.appendChild(responseElement);
+}
+
 function renderResponses(responses, container) {
     container.innerHTML = ''; // Clear existing content
-    responses.forEach((response, index) => {
-        const responseElement = document.createElement('div');
-        responseElement.classList.add('response');
-        responseElement.innerHTML = `<h3>Response ${index + 1}</h3><p>${response}</p>`;
-        container.appendChild(responseElement);
+    responses.forEach(({ response, studentNumber }) => {
+        renderResponse(response, studentNumber, container);
     });
 }
 
 function exportToCSV(responses) {
-    const csvContent = responses.map((response, index) => `Response ${index + 1},${response}`).join('\n');
+    // Create CSV headers
+    const headers = ['Student Number', 'Response'];
+    
+    // Map over the responses array to create rows for each response
+    const rows = responses.map(({ studentNumber, response }) => {
+        // Here we assume that response is an object and we want to extract some specific fields
+        // If response is a string or a simple data structure, you might need to adjust this
+        const formattedResponse = JSON.stringify(response).replace(/"/g, '""'); // Escape double quotes for CSV format
+        
+        return `${studentNumber},"${formattedResponse}"`;
+    });
+
+    // Combine headers and rows into CSV content
+    const csvContent = [headers.join(','), ...rows].join('\n');
+
+    // Create a Blob and download the CSV file
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
