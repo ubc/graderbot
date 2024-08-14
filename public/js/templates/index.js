@@ -201,8 +201,23 @@ async function processAllPrompts(prompts, logger, studentNumbers) {
         }
     }
 
+    console.log('All prompts processed. Displaying final message.');
+
     console.log('All responses:', responses);
     return responses;
+}
+
+function displayFinalMessage() {
+    const finalMessageElement = document.createElement('div');
+    finalMessageElement.classList.add('final-message');
+    finalMessageElement.innerHTML = `
+        <h3>All responses have been processed successfully!</h3>
+        <p>You can now export the responses as a CSV file or review them in the interface.</p>
+    `;
+    
+    // Insert the final message at the top of the response container
+    const responseContainer = document.getElementById('response-container');
+    responseContainer.insertBefore(finalMessageElement, responseContainer.firstChild);
 }
 
 function updateProgressBar(completed, total) {
@@ -212,6 +227,15 @@ function updateProgressBar(completed, total) {
 
     progressBarFill.style.width = `${percentage}%`;
     progressPercentage.textContent = `${percentage}%`;
+
+    if (completed === total) {
+        displayFinalMessage();
+        // Hide the progress bar but keep the final message visible
+        setTimeout(() => {
+            const progressContainer = document.getElementById('progress-container');
+            progressContainer.classList.add('hidden');
+        }, 2000); // Hide after 2 seconds to allow users to see 100%
+    }
 }
 
 
