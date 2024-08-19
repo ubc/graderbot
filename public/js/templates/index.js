@@ -161,48 +161,78 @@ function createPrompts(questionsAndMaxScores, gradingScheme, studentResponses) {
     return { prompts, studentNumbers };
 }
 
-async function processAllPrompts(prompts, logger, studentNumbers) {
+function processAllPrompts(prompts, logger, studentNumbers) {
     const debugMode = storageManager.load('debug-mode');
     const llmUrl = storageManager.load('llm-url') || 'http://localhost:11434/api/generate';
     let responses = [];
     const totalPrompts = prompts.length;
 
-    for (let i = 0; i < prompts.length; i++) {
-        const prompt = prompts[i];
-        const studentNumber = studentNumbers[i];
-
-        try {
-            console.log('Sending prompt:', prompt);
-            const response = await fetch('/generate', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ debugMode: debugMode, llmUrl: llmUrl, prompt: prompt.trim() })
-            });
-
-            if (!response.ok) {
-                throw new Error(`Server responded with ${response.status}`);
+    return new Promise((resolve, reject) => {
+        const processPrompt = async (index) => {
+            if (index >= prompts.length) {
+                console.log('All prompts processed. Displaying final message.');
+                displayFinalMessage();
+                resolve(responses);
+                return;
             }
 
-            const data = await response.json();
-            console.log('Response data for prompt:', data);
-            responses.push({ studentNumber, response: data.response });
+            const prompt = prompts[index];
+            const studentNumber = studentNumbers[index];
 
-            // Render the current response now
-            renderResponse(data.response, studentNumber, document.getElementById('response-container'));
+            try {
+                console.log('Sending prompt:', prompt);
+                const response = await fetch('/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ debugMode: debugMode, llmUrl: llmUrl, prompt: prompt.trim() })
+                });
 
-            // Update the progress bar
-            updateProgressBar(i + 1, totalPrompts);
+                if (!response.ok) {
+                    throw new Error(`Server responded with ${response.status}`);
+                }
 
-        } catch (error) {
-            logger.error('Error processing prompt:', error);
-            renderResponse(`Error processing response for student number: ${studentNumber}`, studentNumber, document.getElementById('response-container'));
+                const data = await response.json();
+                console.log('Response data for prompt:', data);
+                responses.push({ studentNumber, response: data.response });
+
+                renderResponse(data.response, studentNumber, document.getElementById('response-container'));
+                updateProgressBar(index + 1, totalPrompts);
+
+                // Process the next prompt
+                processPrompt(index + 1);
+            } catch (error) {
+                logger.error('Error processing prompt:', error);
+                renderResponse(`Error processing response for student number: ${studentNumber}`, studentNumber, document.getElementById('response-container'));
+                processPrompt(index + 1);
+            }
+        };
+
+        // Start processing prompts
+        processPrompt(0);
+    });
+}
+
+function displayFinalMessage() {
+    const modal = document.getElementById('finalMessageModal');
+    const modalMessage = document.getElementById('modalMessage');
+    const span = document.getElementsByClassName('close')[0];
+
+    modalMessage.textContent = 'All responses have been processed successfully! You can now export the responses as a CSV file or review them in the interface.';
+    modal.style.display = 'block';
+
+    span.onclick = function() {
+        modal.style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+        if (event.target == modal) {
+            modal.style.display = 'none';
         }
     }
 
-    console.log('All responses:', responses);
-    return responses;
+    console.log('Final message displayed');
 }
 
 function updateProgressBar(completed, total) {
@@ -212,8 +242,15 @@ function updateProgressBar(completed, total) {
 
     progressBarFill.style.width = `${percentage}%`;
     progressPercentage.textContent = `${percentage}%`;
-}
 
+    if (completed === total) {
+        // Hide the progress bar but keep the final message visible
+        setTimeout(() => {
+            const progressContainer = document.getElementById('progress-container');
+            progressContainer.classList.add('hidden');
+        }, 2000); // Hide after 2 seconds to allow users to see 100%
+    }
+}
 
 function renderResponse(response, studentNumber, container) {
     const responseElement = document.createElement('div');
