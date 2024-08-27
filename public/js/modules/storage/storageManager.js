@@ -1,4 +1,5 @@
 import { EventEmitter } from '../events/eventEmitter.js';
+import { LocalStorageStrategy } from './localStorageStrategy.js';
 
 /**
  * StorageManager class [that extends EventEmitter] to handle storage operations.
@@ -10,9 +11,9 @@ export class StorageManager extends EventEmitter {
      * Creates an instance of StorageManager.
      * @param {Storage} strategy - The storage strategy to be used (e.g., LocalStorageStrategy).
      */
-    constructor(strategy) {
+    constructor(strategy = null) {
         super();
-        this.strategy = strategy; // Assign the provided storage strategy to the instance.
+        this.strategy = strategy || new LocalStorageStrategy(); // Assign the provided storage strategy to the instance.
     }
 
     /**

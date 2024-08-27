@@ -11,6 +11,15 @@ if (!storageManager.load('onboardingComplete')) {
     window.location.href = '/onboarding';
 }
 
+// Load and display onboarding information
+const senate = storageManager.load('senate');
+const department = storageManager.load('department');
+const course = storageManager.load('course');
+
+document.getElementById('senate-display').textContent = senate;
+document.getElementById('department-display').textContent = department;
+document.getElementById('course-display').textContent = course;
+
 document.addEventListener('DOMContentLoaded', () => {
     const generateButton = document.getElementById('generateButton');
     const responseContainer = document.getElementById('response-container');
@@ -34,12 +43,12 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('csvFile1:', csvFile1);
     console.log('csvFile2:', csvFile2);
     console.log('csvFile3:', csvFile3);
-    
+
     if (!generateButton || !responseContainer || !exportButton || !uploadButton || !progressContainer || !csvFile1 || !csvFile2 || !csvFile3) {
         console.error("One or more elements are not properly referenced!");
         return;
     }
-    
+
     // Disable the Upload button until all files are selected
     uploadButton.disabled = true;
 
@@ -269,13 +278,13 @@ function renderResponses(responses, container) {
 function exportToCSV(responses) {
     // Create CSV headers
     const headers = ['Student Number', 'Response'];
-    
+
     // Map over the responses array to create rows for each response
     const rows = responses.map(({ studentNumber, response }) => {
         // Here we assume that response is an object and we want to extract some specific fields
         // If response is a string or a simple data structure, you might need to adjust this
         const formattedResponse = JSON.stringify(response).replace(/"/g, '""'); // Escape double quotes for CSV format
-        
+
         return `${studentNumber},"${formattedResponse}"`;
     });
 

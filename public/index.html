@@ -10,13 +10,9 @@
 </head>
 <body>
     <div class="container">
-        <h1>GraderBot</h1>
-        <p id="description">I am grading student's answers for a course at <span id="senate" class="selectable">UBC VANCOUVER</span> within <span id="department" class="selectable">COMPUTER SCIENCE</span>. The course is <span id="course" class="selectable">CPSC210</span>.</p>
-
-        <div id="options" class="hidden">
-            <select id="option-select"></select>
-            <button id="option-save">Save</button>
-        </div>
+		<div id="description">
+			<p>I am grading student responses for <span id="course-display"></span> within the <span id="department-display"></span> department at the UBC <span id="senate-display"></span></p>
+		</div>
 
         <div id="upload-container" class="layout-container">
             <div class="box">
@@ -53,7 +49,7 @@
         </div>
         <div id="response-container"></div>
         <button id="export-button" style="margin-top: 20px;">Export as CSV</button>
-        
+
         <a href="/config" id="config-link">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-settings">
                 <circle cx="12" cy="12" r="3"></circle>

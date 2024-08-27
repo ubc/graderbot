@@ -4,21 +4,50 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Onboarding</title>
+	<title>Graderbot Onboarding</title>
 	<link rel="stylesheet" href="css/styles.css">
 </head>
 
 <body>
-	<h1>Welcome to GraderBot</h1>
-	<p>Get started with GraderBot to enhance your grading experience.</p>
-	<ul>
-		<li>Here are some</li>
-		<li>tips to help</li>
-		<li>you get started.</li>
-	</ul>
-	<p>Probably need some sort of disclaimer.</p>
-	<p><button id="get-started-button">Get Started</button></p>
-	<script type="module" src="js/templates/onboarding.js"></script>
+	<main id="onboarding">
+		<h1>Welcome to Graderbot</h1>
+		<div id="onboarding-content">
+			<div id="welcome-screen" class="onboarding-step">
+				<img src="/api/placeholder/400/300" alt="Graderbot welcome image" class="welcome-image">
+				<p>Welcome to Graderbot, your assistant for grading student short-answer responses. Let's get you set up
+					with the right information for your course.</p>
+				<button id="start-onboarding" class="btn-primary">Get Started</button>
+			</div>
+			<div id="senate-selection" class="onboarding-step" hidden>
+				<h2>Select Your Senate</h2>
+				<label for="senate">UBC Senate:</label>
+				<select id="senate" name="senate" required>
+					<option value="">Choose Senate</option>
+					<!-- Options will be populated dynamically -->
+				</select>
+				<button id="next-senate" class="btn-primary" disabled>Next</button>
+			</div>
+			<div id="department-selection" class="onboarding-step" hidden>
+				<h2>Select Your Department</h2>
+				<label for="department">Department:</label>
+				<select id="department" name="department" required>
+					<option value="">Choose Department</option>
+					<!-- Options will be populated dynamically -->
+				</select>
+				<button id="next-department" class="btn-primary" disabled>Next</button>
+			</div>
+			<div id="course-selection" class="onboarding-step" hidden>
+				<h2>Select Your Course</h2>
+				<label for="course">Course:</label>
+				<select id="course" name="course" required>
+					<option value="">Choose Course</option>
+					<!-- Options will be populated dynamically -->
+				</select>
+				<button id="finish-onboarding" class="btn-primary" disabled>Finish</button>
+			</div>
+		</div>
+	</main>
+	<script src="js/templates/onboarding.js" type="module"></script>
 </body>
 
 </html>

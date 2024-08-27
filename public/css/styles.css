@@ -68,8 +68,18 @@ h1 {
 }
 
 #description {
-    font-size: 18px;
-    margin-bottom: 20px;
+	font-size: 1.2em;
+	margin-bottom: 20px;
+	padding: 10px;
+	background-color: #f0f0f0;
+	border-radius: 5px;
+}
+
+#senate-display,
+#department-display,
+#course-display {
+	font-weight: bold;
+	color: #333;
 }
 
 .selectable {
@@ -197,7 +207,6 @@ h1 {
 }
 
 /* modal styling */
-/* Add this to your existing CSS file, preferably at the end to override any conflicting styles */
 #finalMessageModal.modal {
     display: none;
     position: fixed;
@@ -209,7 +218,7 @@ h1 {
     overflow: auto;
     background-color: rgba(0,0,0,0.4);
   }
-  
+
   #finalMessageModal .modal-content {
     background-color: var(--success-color);
     color: white;
@@ -221,7 +230,7 @@ h1 {
     border-radius: 5px;
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
   }
-  
+
   #finalMessageModal .close {
     color: #aaa;
     float: right;
@@ -229,18 +238,105 @@ h1 {
     font-weight: bold;
     cursor: pointer;
   }
-  
+
   #finalMessageModal .close:hover,
   #finalMessageModal .close:focus {
     color: #fff;
     text-decoration: none;
     cursor: pointer;
   }
-  
+
   #finalMessageModal h2 {
     margin-top: 0;
   }
-  
+
   #finalMessageModal #modalMessage {
     margin-bottom: 0;
   }
+
+/* Onboarding styles */
+#onboarding {
+	max-width: 600px;
+	margin: 0 auto;
+	padding: 2rem;
+	font-family: Arial, sans-serif;
+}
+
+#onboarding h1 {
+	text-align: center;
+	color: #333;
+}
+
+.onboarding-step {
+	margin-bottom: 2rem;
+}
+
+.welcome-image {
+	display: block;
+	max-width: 100%;
+	height: auto;
+	margin: 1rem auto;
+}
+
+label {
+	display: block;
+	margin-bottom: 0.5rem;
+	font-weight: bold;
+}
+
+select {
+	width: 100%;
+	padding: 0.5rem;
+	margin-bottom: 1rem;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	font-size: 1rem;
+}
+
+.btn-primary {
+	display: inline-block;
+	padding: 0.5rem 1rem;
+	background-color: #007bff;
+	color: white;
+	border: none;
+	border-radius: 4px;
+	font-size: 1rem;
+	cursor: pointer;
+	transition: background-color 0.3s ease;
+}
+
+.btn-primary:hover {
+	background-color: #0056b3;
+}
+
+.btn-primary:disabled {
+	background-color: #ccc;
+	cursor: not-allowed;
+}
+
+/* Accessibility improvements */
+select:focus,
+.btn-primary:focus {
+	outline: 2px solid #007bff;
+	outline-offset: 2px;
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+	body {
+		background-color: #000;
+		color: #fff;
+	}
+
+	select,
+	.btn-primary {
+		border: 2px solid #fff;
+	}
+}
+
+/* Reduce motion */
+@media (prefers-reduced-motion: reduce) {
+	.btn-primary {
+		transition: none;
+	}
+}
