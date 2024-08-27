@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
 			const processPrompt = async (index) => {
 				if (index >= prompts.length) {
 					console.log('All prompts processed. Displaying final message.');
-					displayFinalMessage();
+					displayCompletionNotification();
 					resolve(responses);
 					return;
 				}
@@ -95,31 +95,16 @@ document.addEventListener('DOMContentLoaded', () => {
 		});
 	}
 
-	function displayFinalMessage() {
-		const modal = document.getElementById('finalMessageModal');
-		const modalMessage = document.getElementById('modalMessage');
-		const span = document.getElementsByClassName('close')[0];
+	function displayCompletionNotification() {
+        Notifications.show('All responses have been processed successfully! You can now export the responses as a CSV file or review them in the interface.', 'info');
 
-		modalMessage.textContent = 'All responses have been processed successfully! You can now export the responses as a CSV file or review them in the interface.';
-		modal.style.display = 'block';
+        // Show the Export as CSV button
+        if (exportButton) {
+            exportButton.style.display = 'block';
+        }
 
-		// Show the Export as CSV button
-		if (exportButton) {
-			exportButton.style.display = 'block';
-		}
-
-		span.onclick = function() {
-			modal.style.display = 'none';
-		}
-
-		window.onclick = function(event) {
-			if (event.target == modal) {
-				modal.style.display = 'none';
-			}
-		}
-
-		console.log('Final message displayed');
-	}
+        console.log('Completion notification displayed');
+    }
 
     const steps = ['intro', 'questions', 'grading-scheme', 'rubric', 'responses'];
     let currentStep = 'intro';
