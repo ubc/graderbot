@@ -11,16 +11,15 @@ if (!storageManager.load('onboardingComplete')) {
     window.location.href = '/onboarding';
 }
 
-// Load and display onboarding information
-const senate = storageManager.load('senate');
-const department = storageManager.load('department');
-const course = storageManager.load('course');
-
-document.getElementById('senate-display').textContent = senate;
-document.getElementById('department-display').textContent = department;
-document.getElementById('course-display').textContent = course;
-
 document.addEventListener('DOMContentLoaded', () => {
+	const senateDisplay = document.getElementById('senate-display');
+    const departmentDisplay = document.getElementById('department-display');
+    const courseDisplay = document.getElementById('course-display');
+
+    if (senateDisplay) senateDisplay.textContent = storageManager.load('senate');
+    if (departmentDisplay) departmentDisplay.textContent = storageManager.load('department');
+    if (courseDisplay) courseDisplay.textContent = storageManager.load('course');
+
     const generateButton = document.getElementById('generateButton');
     const responseContainer = document.getElementById('response-container');
     const exportButton = document.getElementById('export-button');
@@ -42,6 +41,85 @@ document.addEventListener('DOMContentLoaded', () => {
     let prompts = [];
     let studentNumbers = [];
     let allResponses = [];
+
+	function processAllPrompts(prompts, logger, studentNumbers) {
+		const debugMode = storageManager.load('debug-mode');
+		const llmUrl = storageManager.load('llm-url') || 'http://localhost:11434/api/generate';
+		let responses = [];
+		const totalPrompts = prompts.length;
+
+		return new Promise((resolve, reject) => {
+			const processPrompt = async (index) => {
+				if (index >= prompts.length) {
+					console.log('All prompts processed. Displaying final message.');
+					displayFinalMessage();
+					resolve(responses);
+					return;
+				}
+
+				const prompt = prompts[index];
+				const studentNumber = studentNumbers[index];
+
+				try {
+					console.log('Sending prompt:', prompt);
+					const response = await fetch('/generate', {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json'
+						},
+						body: JSON.stringify({ debugMode: debugMode, llmUrl: llmUrl, prompt: prompt.trim() })
+					});
+
+					if (!response.ok) {
+						throw new Error(`Server responded with ${response.status}`);
+					}
+
+					const data = await response.json();
+					console.log('Response data for prompt:', data);
+					responses.push({ studentNumber, response: data.response });
+
+					renderResponse(data.response, studentNumber, document.getElementById('response-container'));
+					updateProgressBar(index + 1, totalPrompts);
+
+					// Process the next prompt
+					processPrompt(index + 1);
+				} catch (error) {
+					logger.error('Error processing prompt:', error);
+					renderResponse(`Error processing response for student number: ${studentNumber}`, studentNumber, document.getElementById('response-container'));
+					processPrompt(index + 1);
+				}
+			};
+
+			// Start processing prompts
+			processPrompt(0);
+		});
+	}
+
+	function displayFinalMessage() {
+		const modal = document.getElementById('finalMessageModal');
+		const modalMessage = document.getElementById('modalMessage');
+		const span = document.getElementsByClassName('close')[0];
+
+		modalMessage.textContent = 'All responses have been processed successfully! You can now export the responses as a CSV file or review them in the interface.';
+		modal.style.display = 'block';
+
+		// Show the Export as CSV button
+		if (exportButton) {
+			exportButton.style.display = 'block';
+		}
+
+		span.onclick = function() {
+			modal.style.display = 'none';
+		}
+
+		window.onclick = function(event) {
+			if (event.target == modal) {
+				modal.style.display = 'none';
+			}
+		}
+
+		console.log('Final message displayed');
+	}
 
     const steps = ['intro', 'questions', 'grading-scheme', 'rubric', 'responses'];
     let currentStep = 'intro';
@@ -122,8 +200,11 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('Prompts created:', prompts);
             console.log('Student numbers:', studentNumbers);
 
-            // Enable the Generate button after prompts are ready
-            generateButton.disabled = false;
+			// Show the Generate Responses button
+            if (generateButton) {
+				generateButton.disabled = false;
+                generateButton.style.display = 'block';
+            }
 
         } catch (error) {
             logger.error('Error uploading CSV files:', error);
@@ -131,28 +212,31 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Generate button event
-    generateButton.addEventListener('click', async () => {
-        generateButton.disabled = true;
-        progressContainer.classList.remove('hidden');
-        updateProgressBar(0, prompts.length);
+    if (generateButton) {
+        generateButton.addEventListener('click', async () => {
+            generateButton.disabled = true;
+            progressContainer.classList.remove('hidden');
+            updateProgressBar(0, prompts.length);
 
-        try {
-            const responses = await processAllPrompts(prompts, logger, studentNumbers);
-            allResponses = responses;
-            renderResponses(responses, responseContainer);
-        } catch (error) {
-            logger.error('Error fetching response', error);
-            responseContainer.innerHTML = 'Error fetching response. Please try again.';
-        } finally {
-            generateButton.disabled = false;
-            progressContainer.classList.add('hidden');
-        }
-    });
+            try {
+                const responses = await processAllPrompts(prompts, logger, studentNumbers);
+                allResponses = responses;
+                renderResponses(responses, responseContainer);
+            } catch (error) {
+                logger.error('Error fetching response', error);
+                responseContainer.innerHTML = 'Error fetching response. Please try again.';
+            } finally {
+                generateButton.disabled = false;
+                progressContainer.classList.add('hidden');
+            }
+        });
+    }
 
-    // Export to CSV button event
-    exportButton.addEventListener('click', () => {
-        exportToCSV(allResponses);
-    });
+    if (exportButton) {
+        exportButton.addEventListener('click', () => {
+            exportToCSV(allResponses);
+        });
+    }
 });
 
 function createPrompts(questionsAndMaxScores, gradingScheme, studentResponses) {
@@ -190,80 +274,6 @@ function createPrompts(questionsAndMaxScores, gradingScheme, studentResponses) {
     }
 
     return { prompts, studentNumbers };
-}
-
-function processAllPrompts(prompts, logger, studentNumbers) {
-    const debugMode = storageManager.load('debug-mode');
-    const llmUrl = storageManager.load('llm-url') || 'http://localhost:11434/api/generate';
-    let responses = [];
-    const totalPrompts = prompts.length;
-
-    return new Promise((resolve, reject) => {
-        const processPrompt = async (index) => {
-            if (index >= prompts.length) {
-                console.log('All prompts processed. Displaying final message.');
-                displayFinalMessage();
-                resolve(responses);
-                return;
-            }
-
-            const prompt = prompts[index];
-            const studentNumber = studentNumbers[index];
-
-            try {
-                console.log('Sending prompt:', prompt);
-                const response = await fetch('/generate', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ debugMode: debugMode, llmUrl: llmUrl, prompt: prompt.trim() })
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Server responded with ${response.status}`);
-                }
-
-                const data = await response.json();
-                console.log('Response data for prompt:', data);
-                responses.push({ studentNumber, response: data.response });
-
-                renderResponse(data.response, studentNumber, document.getElementById('response-container'));
-                updateProgressBar(index + 1, totalPrompts);
-
-                // Process the next prompt
-                processPrompt(index + 1);
-            } catch (error) {
-                logger.error('Error processing prompt:', error);
-                renderResponse(`Error processing response for student number: ${studentNumber}`, studentNumber, document.getElementById('response-container'));
-                processPrompt(index + 1);
-            }
-        };
-
-        // Start processing prompts
-        processPrompt(0);
-    });
-}
-
-function displayFinalMessage() {
-    const modal = document.getElementById('finalMessageModal');
-    const modalMessage = document.getElementById('modalMessage');
-    const span = document.getElementsByClassName('close')[0];
-
-    modalMessage.textContent = 'All responses have been processed successfully! You can now export the responses as a CSV file or review them in the interface.';
-    modal.style.display = 'block';
-
-    span.onclick = function() {
-        modal.style.display = 'none';
-    }
-
-    window.onclick = function(event) {
-        if (event.target == modal) {
-            modal.style.display = 'none';
-        }
-    }
-
-    console.log('Final message displayed');
 }
 
 function updateProgressBar(completed, total) {
