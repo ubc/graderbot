@@ -76,16 +76,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
 					const data = await response.json();
 					console.log('Response data for prompt:', data);
-					responses.push({ studentNumber, response: data.response });
 
-					renderResponse(data.response, studentNumber, document.getElementById('response-container'));
+					// Parse the LLM response
+					const parsedResponse = JSON.parse(data.response);
+					responses.push({
+						studentNumber,
+						questionNumber: parsedResponse.questionNumber,
+						score: parsedResponse.score,
+						maximumScore: parsedResponse.maximumScore
+					});
+
+					renderResponses(responses, document.getElementById('response-container'));
 					updateProgressBar(index + 1, totalPrompts);
 
 					// Process the next prompt
 					processPrompt(index + 1);
 				} catch (error) {
 					logger.error('Error processing prompt:', error);
-					renderResponse(`Error processing response for student number: ${studentNumber}`, studentNumber, document.getElementById('response-container'));
+					responses.push({
+						studentNumber,
+						error: `Error processing response for student number: ${studentNumber}`
+					});
+					renderResponses(responses, document.getElementById('response-container'));
 					processPrompt(index + 1);
 				}
 			};
@@ -246,11 +258,12 @@ function createPrompts(questionsAndMaxScores, gradingScheme, studentResponses) {
                 - Consider the depth of detail provided about any examples or tools mentioned.
                 - Assign the score that best matches the quality of the response according to the rubric.
 
+                Question Number: ${i + 1}
                 Question: ${question}
                 Rubric: ${JSON.stringify(scheme, null, 2)}
                 Answer: ${response}
                 The maximum score for this question is ${maxScore}. Do not provide any reasoning. Answer in JSON like this:
-                {score: '{YOUR SCORE}', maximumScore: ${maxScore}}
+                {questionNumber: ${i + 1}, score: '{YOUR SCORE}', maximumScore: ${maxScore}}
             `;
 
             prompts.push(prompt);
@@ -284,11 +297,124 @@ function renderResponse(response, studentNumber, container) {
     container.appendChild(responseElement);
 }
 
-function renderResponses(responses, container) {
-    container.innerHTML = '';
-    responses.forEach(({ response, studentNumber }) => {
-        renderResponse(response, studentNumber, container);
+function renderAccordion(studentNumber, responses, container) {
+    const accordionHeader = document.createElement('h3');
+    const accordionButton = document.createElement('button');
+    const accordionPanel = document.createElement('section');
+
+    accordionButton.id = `student-grade-accordion-header-${studentNumber}`;
+    accordionButton.setAttribute('aria-expanded', 'false');
+    accordionButton.setAttribute('aria-controls', `student-grade-accordion-panel-${studentNumber}`);
+    accordionButton.setAttribute('data-accordion-header', '');
+    accordionButton.innerHTML = `
+        Suggested Scores for Student ${studentNumber}
+        <svg focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" fill="currentColor"></path><path d="M0 0h24v24H0z" fill="none"></path></svg>
+    `;
+
+    accordionHeader.appendChild(accordionButton);
+
+    accordionPanel.id = `student-grade-accordion-panel-${studentNumber}`;
+    accordionPanel.setAttribute('aria-labelledby', `student-grade-accordion-header-${studentNumber}`);
+    accordionPanel.hidden = true;
+
+    responses.forEach(response => {
+        if (response.error) {
+            accordionPanel.innerHTML += `<p class="error">${response.error}</p>`;
+        } else if (response.questionNumber && response.score && response.maximumScore) {
+            accordionPanel.innerHTML += `
+                <p>Question Number: ${response.questionNumber}</p>
+                <p>Suggested Score: ${response.score} / ${response.maximumScore}</p>
+            `;
+        } else {
+            accordionPanel.innerHTML += `<p class="error">Invalid response format</p>`;
+        }
     });
+
+    container.appendChild(accordionHeader);
+    container.appendChild(accordionPanel);
+}
+
+function addAccordionListeners() {
+    const accordionHeaders = document.querySelectorAll('[data-accordion-header]');
+    Array.prototype.forEach.call(accordionHeaders, accordionHeader => {
+        let target = accordionHeader.parentElement.nextElementSibling;
+        accordionHeader.onclick = () => {
+            let expanded = accordionHeader.getAttribute('aria-expanded') === 'true';
+            accordionHeader.setAttribute('aria-expanded', !expanded);
+            target.hidden = expanded;
+
+            // Rotate icon
+            const icon = accordionHeader.querySelector('.accordion-icon');
+            icon.style.transform = expanded ? 'rotate(0deg)' : 'rotate(45deg)';
+
+            // Change SVG icon (optional, as rotation might be sufficient)
+            if (expanded) {
+                icon.innerHTML = '<path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" fill="currentColor"></path>';
+            } else {
+                icon.innerHTML = '<path d="M19 13H5v-2h14v2z" fill="currentColor"></path>';
+            }
+        }
+    });
+}
+
+function renderResponses(responses, container) {
+    // Group responses by student number
+    const groupedResponses = responses.reduce((acc, response) => {
+        if (!acc[response.studentNumber]) {
+            acc[response.studentNumber] = [];
+        }
+        acc[response.studentNumber].push(response);
+        return acc;
+    }, {});
+
+    for (const [studentNumber, studentResponses] of Object.entries(groupedResponses)) {
+        let accordionHeader = container.querySelector(`#student-grade-accordion-header-${studentNumber}`);
+        let accordionPanel = container.querySelector(`#student-grade-accordion-panel-${studentNumber}`);
+
+        if (!accordionHeader) {
+            // Create new accordion if it doesn't exist
+            accordionHeader = document.createElement('div');
+            accordionHeader.className = 'accordion-header';
+            const accordionButton = document.createElement('button');
+            accordionButton.id = `student-grade-accordion-header-${studentNumber}`;
+            accordionButton.setAttribute('aria-expanded', 'false');
+            accordionButton.setAttribute('aria-controls', `student-grade-accordion-panel-${studentNumber}`);
+            accordionButton.setAttribute('data-accordion-header', '');
+            accordionButton.innerHTML = `
+                <span class="accordion-title">Suggested Scores for Student ${studentNumber}</span>
+                <svg class="accordion-icon" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" fill="currentColor"></path></svg>
+            `;
+            accordionHeader.appendChild(accordionButton);
+            container.appendChild(accordionHeader);
+
+            accordionPanel = document.createElement('div');
+            accordionPanel.className = 'accordion-panel';
+            accordionPanel.id = `student-grade-accordion-panel-${studentNumber}`;
+            accordionPanel.setAttribute('aria-labelledby', `student-grade-accordion-header-${studentNumber}`);
+            accordionPanel.hidden = true;
+            container.appendChild(accordionPanel);
+        }
+
+        // Clear existing content in the panel
+        accordionPanel.innerHTML = '';
+
+        // Add responses to the panel
+        studentResponses.forEach(response => {
+            if (response.error) {
+                accordionPanel.innerHTML += `<p class="error">${response.error}</p>`;
+            } else if (response.questionNumber && response.score && response.maximumScore) {
+                accordionPanel.innerHTML += `
+                    <p><strong>Question Number:</strong> ${response.questionNumber}</p>
+                    <p><strong>Suggested Score:</strong> ${response.score} / ${response.maximumScore}</p>
+                `;
+            } else {
+                accordionPanel.innerHTML += `<p class="error">Invalid response format</p>`;
+            }
+        });
+    }
+
+    // Add event listeners to accordion headers
+    addAccordionListeners();
 }
 
 function exportToCSV(responses) {

@@ -292,3 +292,124 @@ select:focus,
 		transition: none;
 	}
 }
+
+/* Accordion Styles */
+/* Accordion Styles */
+.accordion-header {
+	width: 100%;
+	border-bottom: 1px solid #e0e0e0;
+}
+
+.accordion-header button {
+	width: 100%;
+	padding: 15px;
+	border: none;
+	background-color: #f8f8f8;
+	text-align: left;
+	cursor: pointer;
+	transition: background-color 0.3s ease;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.accordion-title {
+	font-size: 18px;
+	font-weight: bold;
+	color: #333;
+}
+
+.accordion-icon {
+	width: 24px;
+	height: 24px;
+	transition: transform 0.3s ease;
+}
+
+.accordion-header button[aria-expanded="true"] .accordion-icon {
+	transform: rotate(45deg);
+}
+
+.accordion-panel {
+	padding: 15px;
+	background-color: #fff;
+	border-bottom: 1px solid #e0e0e0;
+}
+
+.accordion-header button:hover,
+.accordion-header button:focus {
+	background-color: #e8e8e8;
+}
+
+.accordion-header button:focus {
+	outline: 2px solid #4a90e2;
+	outline-offset: -2px;
+}
+
+/* Ensure color contrast for WCAG 2.1 AA compliance */
+.accordion-header button,
+.accordion-panel {
+	color: #333;
+}
+
+/* Styles for when JavaScript is disabled */
+.accordion-header button[aria-expanded="false"]+.accordion-panel {
+	display: none;
+}
+
+#response-container {
+	width: 100%;
+	max-width: 800px;
+	margin: 0 auto;
+}
+
+#export-button {
+	display: inline-block;
+	padding: 10px 20px;
+	background-color: #4a90e2;
+	/* Use your preferred button color */
+	color: white;
+	font-size: 16px;
+	font-weight: bold;
+	text-align: center;
+	text-decoration: none;
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+	transition: background-color 0.3s ease;
+}
+
+#export-button:hover,
+#export-button:focus {
+	background-color: #357ab8;
+	/* Slightly darker shade for hover/focus */
+	outline: none;
+}
+
+#export-button:active {
+	background-color: #2c6aa0;
+	/* Even darker for active state */
+}
+
+/* If you want to add a subtle box-shadow for depth */
+#export-button {
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Ensure the button is clearly visible when focused, for accessibility */
+#export-button:focus {
+	box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.5);
+}
+
+/* If you want to add an icon, you can use ::before pseudo-element */
+#export-button::before {
+	content: "⬇️";
+	/* You can replace this with an SVG icon if preferred */
+	margin-right: 8px;
+}
+
+/* Ensure sufficient color contrast for WCAG compliance */
+#export-button {
+	color: #ffffff;
+	background-color: #4a90e2;
+	/* Ensure this color has sufficient contrast with white text */
+}
