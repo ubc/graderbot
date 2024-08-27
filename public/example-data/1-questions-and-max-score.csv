@@ -1,2 +1,3 @@
 Question Number,Question,Maximum Score
 1,"Describe the Singleton design pattern. What problem does it solve, and how is it typically implemented? Provide an example scenario where this pattern would be useful.",10
+2,"Compare and contrast the imperative and declarative computational models. Provide examples of languages that use each model and discuss the advantages and disadvantages of both.",10
