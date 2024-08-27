@@ -24,52 +24,81 @@ document.addEventListener('DOMContentLoaded', () => {
     const generateButton = document.getElementById('generateButton');
     const responseContainer = document.getElementById('response-container');
     const exportButton = document.getElementById('export-button');
-    const uploadButton = document.getElementById('uploadButton');
     const progressContainer = document.getElementById('progress-container');
     const csvFile1 = document.getElementById('csvFile1');
     const csvFile2 = document.getElementById('csvFile2');
     const csvFile3 = document.getElementById('csvFile3');
+    const rubricFile = document.getElementById('rubricFile');
+
+    // File upload process elements
+    const startUploadButton = document.getElementById('start-upload-process');
+    const nextToGradingSchemeButton = document.getElementById('next-to-grading-scheme');
+    const nextToRubricButton = document.getElementById('next-to-rubric');
+    const skipToRubricButton = document.getElementById('skip-to-rubric');
+    const nextToResponsesButton = document.getElementById('next-to-responses');
+    const skipToResponsesButton = document.getElementById('skip-to-responses');
+    const finishUploadButton = document.getElementById('finish-upload-process');
 
     let prompts = [];
     let studentNumbers = [];
     let allResponses = [];
 
-    // Debugging logs to check if elements are correctly referenced
-    console.log('generateButton:', generateButton);
-    console.log('responseContainer:', responseContainer);
-    console.log('exportButton:', exportButton);
-    console.log('uploadButton:', uploadButton);
-    console.log('progressContainer:', progressContainer);
-    console.log('csvFile1:', csvFile1);
-    console.log('csvFile2:', csvFile2);
-    console.log('csvFile3:', csvFile3);
+    const steps = ['intro', 'questions', 'grading-scheme', 'rubric', 'responses'];
+    let currentStep = 'intro';
 
-    if (!generateButton || !responseContainer || !exportButton || !uploadButton || !progressContainer || !csvFile1 || !csvFile2 || !csvFile3) {
-        console.error("One or more elements are not properly referenced!");
-        return;
-    }
+    const showStep = (step) => {
+        steps.forEach(s => {
+            const element = document.getElementById(`upload-${s}`);
+            if (element) {
+                element.hidden = (s !== step);
+            }
+        });
+    };
 
-    // Disable the Upload button until all files are selected
-    uploadButton.disabled = true;
+    const nextStep = () => {
+        const currentIndex = steps.indexOf(currentStep);
+        if (currentIndex < steps.length - 1) {
+            currentStep = steps[currentIndex + 1];
+            showStep(currentStep);
+        }
+    };
+
+    startUploadButton.addEventListener('click', () => nextStep());
+    nextToGradingSchemeButton.addEventListener('click', () => nextStep());
+    nextToRubricButton.addEventListener('click', () => nextStep());
+    nextToResponsesButton.addEventListener('click', () => nextStep());
+
+    skipToRubricButton.addEventListener('click', () => {
+        currentStep = 'rubric';
+        showStep(currentStep);
+    });
+
+    skipToResponsesButton.addEventListener('click', () => {
+        if (csvFile2.files.length > 0 || rubricFile.files.length > 0) {
+            currentStep = 'responses';
+            showStep(currentStep);
+        } else {
+            alert('You must upload either a grading scheme or a rubric before proceeding.');
+        }
+    });
 
     const checkFilesSelected = () => {
-        uploadButton.disabled = !(csvFile1.files.length > 0 && csvFile2.files.length > 0 && csvFile3.files.length > 0);
+        nextToGradingSchemeButton.disabled = !(csvFile1.files.length > 0);
+        finishUploadButton.disabled = !(csvFile1.files.length > 0 && csvFile3.files.length > 0 && (csvFile2.files.length > 0 || rubricFile.files.length > 0));
+        skipToResponsesButton.hidden = !(csvFile2.files.length > 0 || rubricFile.files.length > 0);
     };
 
     csvFile1.addEventListener('change', checkFilesSelected);
     csvFile2.addEventListener('change', checkFilesSelected);
     csvFile3.addEventListener('change', checkFilesSelected);
+    rubricFile.addEventListener('change', checkFilesSelected);
 
-    // Upload button event
-    uploadButton.addEventListener('click', async () => {
-        console.log('Upload button clicked');
-        const files = [csvFile1.files[0], csvFile2.files[0], csvFile3.files[0]];
+    finishUploadButton.addEventListener('click', async () => {
         const formData = new FormData();
-        files.forEach((file, index) => {
-            if (file) {
-                formData.append(`csvFile${index + 1}`, file);
-            }
-        });
+        if (csvFile1.files[0]) formData.append('csvFile1', csvFile1.files[0]);
+        if (csvFile2.files[0]) formData.append('csvFile2', csvFile2.files[0]);
+        if (csvFile3.files[0]) formData.append('csvFile3', csvFile3.files[0]);
+        if (rubricFile.files[0]) formData.append('rubricFile', rubricFile.files[0]);
 
         try {
             const response = await fetch('/upload-csv', {
@@ -82,7 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('Uploaded CSV result:', result);
 
             const questionsAndMaxScores = result.csvFile1;
-            const gradingScheme = result.csvFile2;
+            const gradingScheme = result.csvFile2 || result.rubricFile;
             const studentResponses = result.csvFile3;
 
             // Generate prompts here
@@ -101,30 +130,24 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Generate button event
+    generateButton.addEventListener('click', async () => {
+        generateButton.disabled = true;
+        progressContainer.classList.remove('hidden');
+        updateProgressBar(0, prompts.length);
 
-// Generate button event
-generateButton.addEventListener('click', async () => {
-    generateButton.disabled = true;
-    //responseContainer.innerHTML = 'Loading Response...';
-
-    // Ensure the progress bar is visible
-    progressContainer.classList.remove('hidden');
-    updateProgressBar(0, prompts.length); // Initialize progress bar
-
-    try {
-        const responses = await processAllPrompts(prompts, logger, studentNumbers);
-        allResponses = responses;
-        renderResponses(responses, responseContainer);
-
-    } catch (error) {
-        logger.error('Error fetching response', error);
-        responseContainer.innerHTML = 'Error fetching response. Please try again.';
-    } finally {
-        generateButton.disabled = false;
-        progressContainer.classList.add('hidden'); // Hide progress bar when done
-    }
-});
-
+        try {
+            const responses = await processAllPrompts(prompts, logger, studentNumbers);
+            allResponses = responses;
+            renderResponses(responses, responseContainer);
+        } catch (error) {
+            logger.error('Error fetching response', error);
+            responseContainer.innerHTML = 'Error fetching response. Please try again.';
+        } finally {
+            generateButton.disabled = false;
+            progressContainer.classList.add('hidden');
+        }
+    });
 
     // Export to CSV button event
     exportButton.addEventListener('click', () => {
@@ -166,7 +189,6 @@ function createPrompts(questionsAndMaxScores, gradingScheme, studentResponses) {
         }
     }
 
-    console.log('Prompts:', prompts);
     return { prompts, studentNumbers };
 }
 
@@ -253,11 +275,10 @@ function updateProgressBar(completed, total) {
     progressPercentage.textContent = `${percentage}%`;
 
     if (completed === total) {
-        // Hide the progress bar but keep the final message visible
         setTimeout(() => {
             const progressContainer = document.getElementById('progress-container');
             progressContainer.classList.add('hidden');
-        }, 2000); // Hide after 2 seconds to allow users to see 100%
+        }, 2000);
     }
 }
 
@@ -269,29 +290,20 @@ function renderResponse(response, studentNumber, container) {
 }
 
 function renderResponses(responses, container) {
-    container.innerHTML = ''; // Clear existing content
+    container.innerHTML = '';
     responses.forEach(({ response, studentNumber }) => {
         renderResponse(response, studentNumber, container);
     });
 }
 
 function exportToCSV(responses) {
-    // Create CSV headers
     const headers = ['Student Number', 'Response'];
-
-    // Map over the responses array to create rows for each response
     const rows = responses.map(({ studentNumber, response }) => {
-        // Here we assume that response is an object and we want to extract some specific fields
-        // If response is a string or a simple data structure, you might need to adjust this
-        const formattedResponse = JSON.stringify(response).replace(/"/g, '""'); // Escape double quotes for CSV format
-
+        const formattedResponse = JSON.stringify(response).replace(/"/g, '""');
         return `${studentNumber},"${formattedResponse}"`;
     });
 
-    // Combine headers and rows into CSV content
     const csvContent = [headers.join(','), ...rows].join('\n');
-
-    // Create a Blob and download the CSV file
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');

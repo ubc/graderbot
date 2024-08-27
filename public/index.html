@@ -1,65 +1,98 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GraderBot</title>
-    <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>GraderBot</title>
+	<link rel="stylesheet" href="css/styles.css">
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+	<link rel="icon" type="image/x-icon" href="favicon.ico">
 </head>
+
 <body>
-    <div class="container">
+	<div class="container">
 		<div id="description">
-			<p>I am grading student responses for <span id="course-display"></span> within the <span id="department-display"></span> department at the UBC <span id="senate-display"></span></p>
+			I am grading student responses for <span id="course-display"></span> within the
+			<span id="department-display"></span> department at the UBC <span id="senate-display"></span>
 		</div>
 
-        <div id="upload-container" class="layout-container">
-            <div class="box">
-                <h2>Upload Questions with Max Scores</h2>
-                <p class="upload-details">Details here about this</p>
-                <input type="file" id="csvFile1" accept=".csv">
-            </div>
-            <div class="box">
-                <h2>Upload Grading Scheme</h2>
-                <p class="upload-details">Details here about this</p>
-                <input type="file" id="csvFile2" accept=".csv">
-            </div>
-            <div class="box">
-                <h2>Upload Student Responses</h2>
-                <p class="upload-details">Details here about this</p>
-                <input type="file" id="csvFile3" accept=".csv">
-            </div>
-        </div>
+		<div role="main">
+			<div id="file-upload-process">
+				<div id="upload-intro" class="upload-step">
+					<h2>File Upload Process</h2>
+					<p>Welcome to the file upload process. You will need to upload the following files:</p>
+					<ul>
+						<li>Questions and max scores (required)</li>
+						<li>Grading scheme (optional if rubric is provided)</li>
+						<li>Rubric (optional if grading scheme is provided)</li>
+						<li>Student responses (required)</li>
+					</ul>
+					<button id="start-upload-process" class="btn-primary">Get Started</button>
+				</div>
 
-        <button id="uploadButton" disabled>Upload CSVs</button>
-        <button id="generateButton">Get Responses</button>
-        <div id="progress-container" class="hidden">
-            <p>Progress: <span id="progress-percentage">0%</span></p>
-            <div class="progress-bar">
-                <div id="progress-bar-fill" class="progress-bar-fill"></div>
-            </div>
-        </div>
-        <div id="finalMessageModal" class="modal">
-            <div class="modal-content">
-                <span class="close">&times;</span>
-                 <h2>Success!</h2>
-                <p id="modalMessage"></p>
-            </div>
-        </div>
-        <div id="response-container"></div>
-        <button id="export-button" style="margin-top: 20px;">Export as CSV</button>
+				<div id="upload-questions" class="upload-step" hidden>
+					<h2>Step 1: Upload Questions and Max Scores</h2>
+					<input type="file" id="csvFile1" name="csvFile1" accept=".csv" required>
+					<button id="next-to-grading-scheme" class="btn-primary" disabled>Next</button>
+				</div>
 
-        <a href="/config" id="config-link">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-settings">
-                <circle cx="12" cy="12" r="3"></circle>
-                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-            </svg>
-        </a>
-    </div>
+				<div id="upload-grading-scheme" class="upload-step" hidden>
+					<h2>Step 2: Upload Grading Scheme</h2>
+					<input type="file" id="csvFile2" name="csvFile2" accept=".csv">
+					<button id="next-to-rubric" class="btn-primary">Next</button>
+					<button id="skip-to-rubric" class="btn-secondary">Skip to Rubric</button>
+				</div>
 
-    <script type="module" src="js/main.js"></script>
-    <script type="module" src="js/templates/index.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+				<div id="upload-rubric" class="upload-step" hidden>
+					<h2>Step 3: Upload Rubric</h2>
+					<input type="file" id="rubricFile" name="rubricFile" accept=".csv">
+					<button id="next-to-responses" class="btn-primary">Next</button>
+					<button id="skip-to-responses" class="btn-secondary" hidden>Skip to Student Responses</button>
+				</div>
+
+				<div id="upload-responses" class="upload-step" hidden>
+					<h2>Step 4: Upload Student Responses</h2>
+					<input type="file" id="csvFile3" name="csvFile3" accept=".csv" required>
+					<button id="finish-upload-process" class="btn-primary" disabled>Finish</button>
+				</div>
+			</div>
+		</div>
+
+		<button id="generateButton" disabled>Generate Responses</button>
+
+		<div id="progress-container" class="hidden">
+			Progress: <span id="progress-percentage">0%</span>
+			<div class="progress-bar">
+				<div id="progress-bar-fill" class="progress-bar-fill"></div>
+			</div>
+		</div>
+
+		<div id="finalMessageModal" class="modal">
+			<div class="modal-content">
+				<span class="close">&times;</span>
+				<h2>Success!</h2>
+				<p id="modalMessage"></p>
+			</div>
+		</div>
+
+		<div id="response-container"></div>
+
+		<button id="export-button">Export as CSV</button>
+
+		<a href="/config" id="config-link">
+			<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#333"
+				stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-settings">
+				<circle cx="12" cy="12" r="3"></circle>
+				<path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+				</path>
+			</svg>
+		</a>
+	</div>
+
+	<script type="module" src="js/main.js"></script>
+	<script type="module" src="js/templates/index.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 </body>
+
 </html>
