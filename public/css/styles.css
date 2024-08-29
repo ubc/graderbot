@@ -2,6 +2,7 @@
 	--background-color-primary: rgb(1, 33, 69);
     --background-color-secondary: rgb(0, 85, 183);
 	--text-color-secondary: rgb(240,240,240);
+	--text-color-tertiary: rgb(250,250,250);
     --text-color: rgb(30,30,30);
 	--text-color-info-primary: rgb(80,80,80);
     --success-color: rgb(46, 204, 113);
@@ -11,7 +12,7 @@
     --flex-container-gap: 20px;
 }
 
-/* CSS Reset */
+/* ====================================================== CSS Reset */
 *, *::before, *::after { box-sizing: border-box; }
 * { margin: 0; }
 body { line-height: 1.5; -webkit-font-smoothing: antialiased; }
@@ -20,7 +21,7 @@ input, button, textarea, select { font: inherit; }
 p, h1, h2, h3, h4, h5, h6 { overflow-wrap: break-word; }
 #root, #__next { isolation: isolate; }
 
-/* Ensure we have a minimum full height of the browser */
+/* ====================================================== Ensure we have a minimum full height of the browser */
 html, body {
 	height: 100vh;
 	margin: 0;
@@ -35,7 +36,7 @@ body {
 	-moz-osx-font-smoothing: grayscale;
 }
 
-/* Logo/Wordmark */
+/* ====================================================== Logo/Wordmark */
 #icon-logo {
 	display: flex;
 	align-items: center;
@@ -54,9 +55,7 @@ body {
 	font-size: 1.7em;
 }
 
-/*
- * Onboarding Grid
- */
+/* ====================================================== Onboarding Grid */
 #onboarding {
 	display: grid;
 	grid-template-columns: 38% 1fr;
@@ -131,7 +130,7 @@ body {
 	grid-area: onboarding-footer;
 }
 
-/* Onboarding Typography */
+/* ====================================================== Onboarding Typography */
 #onboarding-info h2 {
 	font-size: 3.4rem;
 	line-height: 1.1;
@@ -198,8 +197,234 @@ body {
 	text-align: right;
 }
 
+/* ====================================================== Main App Styles */
 
-/* Generic Styles */
+.graderbot-main .container {
+	display: grid;
+	grid-template-columns: 10% 1fr;
+	grid-template-rows: 1fr;
+	gap: 0px 3rem;
+	grid-auto-flow: row dense;
+	grid-template-areas:
+		"main-app-sidebar main-app-content";
+	min-height: 100%;
+	flex: 1;
+}
+
+.main-app-sidebar {
+	grid-area: main-app-sidebar;
+	padding: 2rem;
+	background-color: var(--background-color-secondary);
+	color: var(--text-color-secondary);
+	text-align: center;
+	display: grid;
+	grid-template-columns: 1fr;
+	grid-template-rows: 9fr 1fr;
+	gap: 0px 0px;
+	grid-template-areas:
+		"sidebar-items"
+		"sidebar-footer";
+}
+
+.sidebar-items {
+	grid-area: sidebar-items;
+}
+
+.sidebar-footer {
+	grid-area: sidebar-footer;
+	display: flex;
+	align-items: flex-end;
+}
+
+.main-app-sidebar #icon-logo svg {
+	margin: 0 auto;
+}
+
+.main-app-sidebar .settings-bottom {
+	display: block;
+	width: 100%;
+	text-align: center;
+}
+
+.main-app-sidebar #config-link svg {
+	margin: 0 auto;
+}
+
+.main-app-content {
+	grid-area: main-app-content;
+	padding: 2rem 2rem 2rem 0;
+	max-width: 960px;
+}
+
+#progress-container {
+	padding: 2rem 0;
+}
+
+.main-app-header svg {
+	width: 20px;
+	height: auto;
+	display: inline-block;
+	position: relative;
+	top: 4px;
+}
+
+.main-app-header h1 {
+	text-transform: uppercase;
+	letter-spacing: 1px;
+	font-size: 1.5rem;
+	margin-bottom: 0.5rem;
+}
+
+.main-app-header p {
+	margin-bottom: 1rem;
+}
+
+.task-description {
+	padding: 0.75rem 1rem;
+	background-color: var(--text-color-secondary);
+	border-radius: 5px;
+	margin-top: 2rem;
+	margin-bottom: 4rem;
+}
+
+.task-description h2 {
+	font-size: 1rem;
+}
+
+.main-app-content .task-description p {
+	font-size: 1rem;
+}
+
+.task-description p:last-of-type {
+	margin-bottom: 0;
+}
+
+.task-description p span {
+	font-weight: bold;
+}
+
+.upload-step h2 {
+	font-size: 1.3rem;
+	margin-bottom: 0.5rem;
+}
+
+.main-app-content .upload-step p,
+#generate-responses-container p {
+	margin-bottom: 1rem;
+	font-size: 1rem;
+}
+
+.upload-step button {
+	display: inline-block;
+}
+
+#generate-responses-container {
+	margin: 2rem 0;
+}
+
+.main-app-content #response-message-and-responses p {
+	font-size: 1rem;
+}
+
+/* ====================================================== Progress Bar */
+#progress-container {
+	width: 100%;
+	margin: 2rem 0;
+}
+
+.progress-bar {
+	width: 100%;
+	background-color: var(--background-color-secondary);
+	border-radius: 5px;
+	overflow: hidden;
+	margin: 1rem 0;
+}
+
+.progress-bar-fill {
+	height: 1rem;
+	width: 0;
+	background-color: var(--success-color);
+	text-align: center;
+	line-height: 1rem;
+	color: white;
+}
+
+
+#progress-text {
+	display: block;
+	text-align: center;
+	margin-top: 5px;
+}
+
+/* ====================================================== Accordions */
+.accordion-header {
+	width: 100%;
+	margin-top: 1rem;
+}
+
+.accordion-header button {
+	width: 100%;
+	padding: 1rem;
+	border: none;
+	background-color: var(--text-color-secondary);
+	text-align: left;
+	cursor: pointer;
+	transition: background-color 0.3s ease;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.accordion-title {
+	font-size: 1rem;
+	color: var(--text-color);
+	text-transform: none;
+}
+
+.accordion-icon {
+	width: 24px;
+	height: 24px;
+	transition: transform 0.3s ease;
+}
+
+.accordion-header button[aria-expanded="true"] .accordion-icon {
+	transform: rotate(0deg);
+}
+
+.accordion-panel {
+	padding: 1rem;
+	background-color: var(--text-color-tertiary);
+}
+
+.main-app-content .accordion-panel p {
+	font-size: 1rem;
+}
+
+.accordion-panel p:nth-of-type(even) {
+	margin-bottom: 1rem;
+}
+
+.accordion-header button:hover,
+.accordion-header button:focus {
+	background-color: #e8e8e8;
+}
+
+.accordion-header button:focus {
+	outline: 2px solid #4a90e2;
+	outline-offset: -2px;
+}
+
+.accordion-header button,
+.accordion-panel {
+	color: #333;
+}
+
+/* Styles for when JavaScript is disabled */
+.accordion-header button[aria-expanded="false"]+.accordion-panel {
+	display: none;
+}
+
+/* ====================================================== Generic Styles */
 
 .primary-box {
 	background-color: var(--background-color-primary);
@@ -208,7 +433,7 @@ body {
 	border-radius: 5px;
 }
 
-/* Typography */
+/* ====================================================== Typography */
 .sidebar-content h3 {
 	margin-bottom: 0.8rem;
 }
@@ -246,12 +471,60 @@ body {
 }
 
 .main-content p {
-	font-size: 1;
+	font-size: 1rem;
 	margin-bottom: 1rem;
 }
 
+.main-app-content p {
+	font-size: 1.2rem;
+}
 
-/* Buttons */
+ul, ol {
+	margin: 1rem 0;
+	padding: 0;
+	list-style-position: inside;
+}
+
+li {
+	font-size: 1.2rem;
+	margin-bottom: 0.25rem;
+}
+
+.hidden {
+	visibility: hidden;
+}
+
+.notice {
+	padding: 0.25rem 1rem;
+	border-left: 3px solid var(--warning-color);
+}
+
+/* ====================================================== Badges */
+.mini-badge {
+	display: inline-block;
+	background-color: transparent;
+	color: var(--text-color);
+	padding: 0.2rem 0.5rem;
+	border-radius: 5px;
+	font-size: 0.8rem;
+	border: 1px solid var(--background-color-secondary);
+	margin-left: 5px;
+	position: relative;
+	top: -2px;
+}
+
+.mini-badge.required {
+	background-color: var(--warning-color);
+	border-color: var(--warning-color);
+}
+
+.mini-badge.recommended {
+	background-color: var(--success-color);
+	border-color: var(--success-color);
+	color: var(--text-color);
+}
+
+/* ====================================================== Buttons */
 button, .btn-primary {
 	background-color: var(--background-color-secondary);
 	color: var(--text-color-secondary);
@@ -268,7 +541,41 @@ button:hover, .btn-primary:hover {
 	background-color: var(--background-color-primary);
 }
 
-/* Form elements */
+button[disabled], .btn-primary[disabled] {
+	background-color: transparent;
+	border: 1px solid var(--text-color-info-primary);
+	color: var(--text-color-info-primary);
+	cursor: not-allowed;
+}
+
+.btn-secondary {
+	background-color: transparent;
+	text-transform: none;
+	border: none;
+	color: var(--text-color);
+	letter-spacing: normal;
+	padding: 0;
+	margin-left: 0.5rem;
+	text-decoration: underline;
+	display: inline-block;
+}
+
+.btn-secondary:hover, .btn-secondary:focus, .btn-secondary:active {
+	background-color: transparent;
+	text-decoration: none;
+	border: none;
+}
+
+#export-button svg {
+	width: 16px;
+	height: auto;
+	margin-right: 0.2rem;
+	display: inline-block;
+	position: relative;
+	top: 3px;
+}
+
+/* ====================================================== Form elements */
 select {
 	background-color: white;
 	border: thin solid var(--background-color-secondary);
@@ -323,4 +630,30 @@ select.minimal:focus {
 select:-moz-focusring {
 	color: transparent;
 	text-shadow: 0 0 0 #000;
+}
+
+/* ====================================================== File Upload */
+
+.file-upload {
+	width: 50%;
+	margin: 1rem 0;
+	border-radius: 5px;
+	border: none;
+	background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' stroke='%23ccc' stroke-width='3' stroke-dasharray='6%2c 14' stroke-dashoffset='0' stroke-linecap='square'/%3e%3c/svg%3e");
+	background-color: transparent;
+	padding: 3rem;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+.main-app-content p.file-upload-instructions {
+	font-size: 0.8rem;
+}
+
+.file-upload-instructions svg {
+	width: 20px;
+	display: inline-block;
+	position: relative;
+	top: 5px;
 }

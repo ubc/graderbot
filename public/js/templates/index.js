@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (courseDisplay) courseDisplay.textContent = storageManager.load('course');
 
     const generateButton = document.getElementById('generateButton');
+	const responseMessageAndResponses = document.getElementById('response-message-and-responses');
     const responseContainer = document.getElementById('response-container');
     const exportButton = document.getElementById('export-button');
     const progressContainer = document.getElementById('progress-container');
@@ -37,6 +38,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const nextToResponsesButton = document.getElementById('next-to-responses');
     const skipToResponsesButton = document.getElementById('skip-to-responses');
     const finishUploadButton = document.getElementById('finish-upload-process');
+	const generateResponsesContainer = document.getElementById('generate-responses-container');
+	const lastStepContainer = document.getElementById('upload-responses');
 
     let prompts = [];
     let studentNumbers = [];
@@ -112,7 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Show the Export as CSV button
         if (exportButton) {
-            exportButton.style.display = 'block';
+            exportButton.style.display = 'inline-block';
         }
 
         console.log('Completion notification displayed');
@@ -198,9 +201,11 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('Student numbers:', studentNumbers);
 
 			// Show the Generate Responses button
-            if (generateButton) {
+            if (generateResponsesContainer && generateButton) {
+				generateResponsesContainer.style.display = 'block';
 				generateButton.disabled = false;
                 generateButton.style.display = 'block';
+				lastStepContainer.style.display = 'none';
             }
 
         } catch (error) {
@@ -223,8 +228,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 logger.error('Error fetching response', error);
                 responseContainer.innerHTML = 'Error fetching response. Please try again.';
             } finally {
-                generateButton.disabled = false;
-                progressContainer.classList.add('hidden');
+                progressContainer.style.display = 'none'
+				generateResponsesContainer.style.display = 'none';
+				responseMessageAndResponses.style.display = 'block';
             }
         });
     }
@@ -345,7 +351,7 @@ function addAccordionListeners() {
 
             // Rotate icon
             const icon = accordionHeader.querySelector('.accordion-icon');
-            icon.style.transform = expanded ? 'rotate(0deg)' : 'rotate(45deg)';
+            icon.style.transform = expanded ? 'rotate(0deg)' : 'rotate(0deg)';
 
             // Change SVG icon (optional, as rotation might be sufficient)
             if (expanded) {
