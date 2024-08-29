@@ -10,42 +10,88 @@
 
 <body>
 	<main id="onboarding">
-		<h1>Welcome to Graderbot</h1>
-		<div id="onboarding-content">
-			<div id="welcome-screen" class="onboarding-step">
-				<img src="/api/placeholder/400/300" alt="Graderbot welcome image" class="welcome-image">
-				<p>Welcome to Graderbot, your assistant for grading student short-answer responses. Let's get you set up
-					with the right information for your course.</p>
-				<button id="start-onboarding" class="btn-primary">Get Started</button>
+
+		<div id="introduction" class="sidebar-content">
+
+			<div id="icon-logo">
+				<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="white"
+					class="size-6">
+					<path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5" />
+				</svg>
+				<h1>Graderbot</h1>
 			</div>
-			<div id="senate-selection" class="onboarding-step" hidden>
-				<h2>Select Your Senate</h2>
-				<label for="senate">UBC Senate:</label>
-				<select id="senate" name="senate" required>
-					<option value="">Choose Senate</option>
-					<!-- Options will be populated dynamically -->
-				</select>
-				<button id="next-senate" class="btn-primary" disabled>Next</button>
+
+			<div id="onboarding-info">
+				<h2>Let's get you set up with GraderBot</h2>
+				<p>Graderbot is an exemplar application for the <a href="https://tlef.ubc.ca/uncategorized/genai-sandbox-architecture/">LLM Sandbox</a>. It is designed to give you a first pass at potential grades for your student's short-essay style answers to your questions.</p>
 			</div>
-			<div id="department-selection" class="onboarding-step" hidden>
-				<h2>Select Your Department</h2>
-				<label for="department">Department:</label>
-				<select id="department" name="department" required>
-					<option value="">Choose Department</option>
-					<!-- Options will be populated dynamically -->
-				</select>
-				<button id="next-department" class="btn-primary" disabled>Next</button>
+
+			<div id="disclaimer">
+				<div class="disclaimer-box primary-box">
+					<h3>
+						<span>
+							<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+								class="size-6">
+								<path stroke-linecap="round" stroke-linejoin="round"
+									d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+							</svg>
+						</span>
+						Important Disclaimer
+					</h3>
+
+					<p>Graderbot uses Generative AI to help you grade your student's responses. Its responses are not guaranteed to be accurate. You should compare your own assessment of each student's work with GraderBot.</p>
+				</div>
 			</div>
-			<div id="course-selection" class="onboarding-step" hidden>
-				<h2>Select Your Course</h2>
-				<label for="course">Course:</label>
-				<select id="course" name="course" required>
-					<option value="">Choose Course</option>
-					<!-- Options will be populated dynamically -->
-				</select>
-				<button id="finish-onboarding" class="btn-primary" disabled>Finish</button>
-			</div>
+
 		</div>
+
+		<div id="get-started">
+			<div id="onboarding-progress-bar"></div>
+
+			<div id="onboarding-main-content" class="main-content">
+
+				<h2>Let's get started</h2>
+
+				<p>To get started, we need some information about you, which department you are with, and the course that you are grading. This all helps provide context to GraderBot to help produce more accurate results.</p>
+
+				<button id="start-onboarding" class="btn-primary">Get Started</button>
+
+				<div id="senate-selection" class="onboarding-step" hidden>
+					<h3>Select Your Senate</h3>
+					<label for="senate">UBC Senate:</label>
+					<select id="senate" name="senate" required>
+						<option value="">Choose Senate</option>
+						<!-- Options will be populated dynamically -->
+					</select>
+					<button id="next-senate" class="btn-primary" disabled>Next</button>
+				</div>
+
+				<div id="department-selection" class="onboarding-step" hidden>
+					<h3>Select Your Department</h3>
+					<label for="department">Department:</label>
+					<select id="department" name="department" required>
+						<option value="">Choose Department</option>
+						<!-- Options will be populated dynamically -->
+					</select>
+					<button id="next-department" class="btn-primary" disabled>Next</button>
+				</div>
+
+				<div id="course-selection" class="onboarding-step" hidden>
+					<h3>Select Your Course</h3>
+					<label for="course">Course:</label>
+					<select id="course" name="course" required>
+						<option value="">Choose Course</option>
+						<!-- Options will be populated dynamically -->
+					</select>
+					<button id="finish-onboarding" class="btn-primary" disabled>Finish</button>
+				</div>
+			</div>
+
+			<div id="onboarding-footer">
+			</div>
+
+		</div>
+
 	</main>
 	<script src="js/templates/onboarding.js" type="module"></script>
 </body>

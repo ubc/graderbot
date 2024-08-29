@@ -64,6 +64,8 @@ class Onboarding {
             currentStepElement.hidden = true;
         }
 
+		this.startButton.hidden = true;
+
         const currentIndex = this.steps.indexOf(this.currentStep);
         if (currentIndex < this.steps.length - 1) {
             this.currentStep = this.steps[currentIndex + 1];
