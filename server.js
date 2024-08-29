@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import fetch from 'node-fetch';
 import multer from 'multer';
-import processCSV  from './server_modules/csv/processCSV.js';
+import processCSV from './server_modules/csv/processCSV.js';
 
 dotenv.config();
 
@@ -59,7 +59,7 @@ app.post('/generate', async (req, res) => {
         format: 'json',
         options: {
             temperature: 0,
-			num_ctx: 16384
+            num_ctx: 16384
         }
     };
 
@@ -87,13 +87,18 @@ app.post('/generate', async (req, res) => {
     }
 });
 
-app.post('/upload-csv', upload.fields([{ name: 'csvFile1' }, { name: 'csvFile2' }, { name: 'csvFile3' }]), (req, res) => {
+app.post('/upload-csv', upload.fields([
+    { name: 'csvFile1' }, 
+    { name: 'csvFile2' }, 
+    { name: 'csvFile3' }, 
+    { name: 'rubricFile' }
+]), (req, res) => {
     const debugMode = req.body.debugMode === 'true';
     const files = req.files;
     const jsonData = {};
 
     try {
-      processCSV(files, jsonData, debugMode);
+        processCSV(files, jsonData, debugMode);
 
         logger(debugMode, 'CSV files processed:', jsonData);
         res.json(jsonData);
