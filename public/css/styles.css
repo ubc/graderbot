@@ -3,6 +3,7 @@
     --background-color-secondary: rgb(0, 85, 183);
 	--text-color-secondary: rgb(240,240,240);
     --text-color: rgb(30,30,30);
+	--text-color-info-primary: rgb(80,80,80);
     --success-color: rgb(46, 204, 113);
     --warning-color: rgb(241, 196, 15);
     --error-color: rgb(231, 76, 60);
@@ -146,6 +147,57 @@ body {
 	margin-top: 2rem;
 }
 
+.onboarding-step[hidden] {
+	display: none;
+}
+
+.onboarding-step {
+	margin-top: 3rem;
+	display: grid;
+	grid-template-columns: 15% 1fr;
+	grid-template-rows: 1fr;
+	gap: 2rem 2rem;
+	grid-template-areas:
+		"onboarding-step-icon onboarding-step-field"
+		"next-step-button next-step-button";
+	padding: 2rem;
+	background: rgb(245, 245, 245);
+	border-radius: 5px;
+}
+
+.onboarding-step-icon {
+	grid-area: onboarding-step-icon;
+}
+
+.onboarding-step-icon svg {
+	width: 100%;
+	stroke-width: 1;
+	stroke: var(--background-color-secondary);
+}
+
+.onboarding-step-field {
+	grid-area: onboarding-step-field;
+}
+
+.next-step-button {
+	grid-area: next-step-button;
+}
+
+.onboarding-step label {
+	font-weight: bold;
+	font-size: 1.2rem;
+}
+
+.onboarding-step .field-reason {
+	font-style: italic;
+	font-size: 0.9rem;
+	color: var(--text-color-info-primary);
+}
+
+.onboarding-step .next-step-button {
+	text-align: right;
+}
+
 
 /* Generic Styles */
 
@@ -171,8 +223,6 @@ body {
 	width: 20px;
 	height: auto;
 }
-
-
 
 .sidebar-content a {
 	color: var(--text-color-secondary);
@@ -216,4 +266,61 @@ button, .btn-primary {
 
 button:hover, .btn-primary:hover {
 	background-color: var(--background-color-primary);
+}
+
+/* Form elements */
+select {
+	background-color: white;
+	border: thin solid var(--background-color-secondary);
+	border-radius: 5px;
+	display: inline-block;
+	font: inherit;
+	line-height: 1.5em;
+	padding: 0.5em 3.5em 0.5em 1em;
+	margin: 0;
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	box-sizing: border-box;
+	-webkit-appearance: none;
+	-moz-appearance: none;
+}
+
+select.minimal {
+	background-image:
+		linear-gradient(45deg, transparent 50%, gray 50%),
+		linear-gradient(135deg, gray 50%, transparent 50%),
+		linear-gradient(to right, #ccc, #ccc);
+	background-position:
+		calc(100% - 20px) calc(1em + 2px),
+		calc(100% - 15px) calc(1em + 2px),
+		calc(100% - 2.5em) 0.5em;
+	background-size:
+		5px 5px,
+		5px 5px,
+		1px 1.5em;
+	background-repeat: no-repeat;
+}
+
+select.minimal:focus {
+	background-image:
+		linear-gradient(45deg, var(--success-color) 50%, transparent 50%),
+		linear-gradient(135deg, transparent 50%, var(--success-color) 50%),
+		linear-gradient(to right, #ccc, #ccc);
+	background-position:
+		calc(100% - 15px) 1em,
+		calc(100% - 20px) 1em,
+		calc(100% - 2.5em) 0.5em;
+	background-size:
+		5px 5px,
+		5px 5px,
+		1px 1.5em;
+	background-repeat: no-repeat;
+	border-color: var(--success-color);
+	outline: 0;
+}
+
+
+select:-moz-focusring {
+	color: transparent;
+	text-shadow: 0 0 0 #000;
 }

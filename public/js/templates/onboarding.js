@@ -37,7 +37,7 @@ class Onboarding {
 
     populateDropdowns() {
         // Populate senate options
-        const senateOptions = ['Vancouver Senate', 'Okanagan Senate'];
+        const senateOptions = ['UBC Vancouver', 'UBC Okanagan'];
         this.populateDropdown(this.senateSelect, senateOptions);
 
         // Populate department options (example data)
