@@ -43,6 +43,11 @@ body {
 	gap: 10px;
 }
 
+#icon-logo a {
+	text-decoration: none;
+	border-bottom: none;
+}
+
 #icon-logo svg {
 	width: 40px;
 	height: auto;
@@ -198,8 +203,10 @@ body {
 }
 
 /* ====================================================== Main App Styles */
+/* ====================================================== & Config Style  */
 
-.graderbot-main .container {
+.graderbot-main .container,
+.graderbot-config .container {
 	display: grid;
 	grid-template-columns: 10% 1fr;
 	grid-template-rows: 1fr;
@@ -211,7 +218,8 @@ body {
 	flex: 1;
 }
 
-.main-app-sidebar {
+.main-app-sidebar,
+.config-sidebar {
 	grid-area: main-app-sidebar;
 	padding: 2rem;
 	background-color: var(--background-color-secondary);
@@ -236,21 +244,28 @@ body {
 	align-items: flex-end;
 }
 
-.main-app-sidebar #icon-logo svg {
+.main-app-sidebar #icon-logo svg,
+.config-sidebar #icon-logo svg {
 	margin: 0 auto;
 }
 
-.main-app-sidebar .settings-bottom {
+.main-app-sidebar .settings-bottom,
+.config-sidebar .settings-bottom {
 	display: block;
 	width: 100%;
 	text-align: center;
 }
 
-.main-app-sidebar #config-link svg {
+.main-app-sidebar #config-link svg,
+.config-sidebar .settings-bottom svg {
+	width: 24px;
+	height: auto;
+	display: block;
 	margin: 0 auto;
 }
 
-.main-app-content {
+.main-app-content,
+.config-content {
 	grid-area: main-app-content;
 	padding: 2rem 2rem 2rem 0;
 	max-width: 960px;
@@ -260,7 +275,8 @@ body {
 	padding: 2rem 0;
 }
 
-.main-app-header svg {
+.main-app-header svg,
+.config-header svg {
 	width: 20px;
 	height: auto;
 	display: inline-block;
@@ -268,14 +284,16 @@ body {
 	top: 4px;
 }
 
-.main-app-header h1 {
+.main-app-header h1,
+.config-header h1 {
 	text-transform: uppercase;
 	letter-spacing: 1px;
 	font-size: 1.5rem;
 	margin-bottom: 0.5rem;
 }
 
-.main-app-header p {
+.main-app-header p,
+.config-header p {
 	margin-bottom: 1rem;
 }
 
@@ -424,6 +442,30 @@ body {
 	display: none;
 }
 
+/* ====================================================== Config Styles */
+.form-group {
+	display: grid;
+	grid-template-columns: 2fr 4fr;
+	grid-template-rows: 1fr;
+	gap: 1rem 3rem;
+	grid-template-areas:
+		"label-and-desc input-field";
+}
+
+.label-and-desc {
+	grid-area: label-and-desc;
+	margin-bottom: 2rem;
+}
+
+.label-and-desc small {
+	display: block;
+	color: var(--text-color-info-primary);
+}
+
+.input-field {
+	grid-area: input-field;
+}
+
 /* ====================================================== Generic Styles */
 
 .primary-box {
@@ -566,6 +608,7 @@ button[disabled], .btn-primary[disabled] {
 	border: none;
 }
 
+.btn-secondary svg,
 #export-button svg {
 	width: 16px;
 	height: auto;
@@ -573,6 +616,10 @@ button[disabled], .btn-primary[disabled] {
 	display: inline-block;
 	position: relative;
 	top: 3px;
+}
+
+#back-link {
+	margin-left: 1rem;
 }
 
 /* ====================================================== Form elements */
@@ -630,6 +677,13 @@ select.minimal:focus {
 select:-moz-focusring {
 	color: transparent;
 	text-shadow: 0 0 0 #000;
+}
+
+input[type="text"] {
+	width: 60%;
+	padding: 0.25rem 0.5rem;
+	border: 1px solid var(--text-color-info-primary);
+	border-radius: 5px;
 }
 
 /* ====================================================== File Upload */
