@@ -189,11 +189,12 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('Uploaded CSV result:', result);
 
             const questionsAndMaxScores = result.csvFile1;
-            const gradingScheme = result.csvFile2 || result.rubricFile;
+            const gradingScheme = result.csvFile2 || ''; 
+            const rubric = result.rubricFile || ''; 
             const studentResponses = result.csvFile3;
 
             // Generate prompts here
-            const promptData = createPrompts(questionsAndMaxScores, gradingScheme, studentResponses);
+            const promptData = createPrompts(questionsAndMaxScores, gradingScheme, rubric, studentResponses);
             prompts = promptData.prompts;
             studentNumbers = promptData.studentNumbers;
 
@@ -242,7 +243,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-function createPrompts(questionsAndMaxScores, gradingScheme, studentResponses) {
+function createPrompts(questionsAndMaxScores, gradingScheme, rubric, studentResponses) {
     let prompts = [];
     let studentNumbers = [];
 
@@ -250,23 +251,28 @@ function createPrompts(questionsAndMaxScores, gradingScheme, studentResponses) {
         for (let j = 0; j < studentResponses.length; j++) {
             let question = questionsAndMaxScores[i].Question;
             let maxScore = questionsAndMaxScores[i].MaximumScore;
-            let scheme = gradingScheme[i];
+            let scheme = gradingScheme ? gradingScheme[i] : '';
+            let rubricEntry = rubric ? rubric[i] : '';
             let response = studentResponses[j][`Question${i + 1}Answer`];
             let studentNumber = studentResponses[j].StudentNumber;
 
+            // Dynamically add Rubric and Grading Scheme if they exist
+            let rubricSection = rubricEntry ? `Rubric: ${JSON.stringify(rubricEntry, null, 2)}\n` : '';
+            let gradingSchemeSection = scheme ? `Grading Scheme: ${JSON.stringify(scheme, null, 2)}\n` : '';
+
             let prompt = `
-                You are tasked with grading student answers based on the provided grading rubric. Each entry in the grading rubric corresponds to a score. Some fields in the rubric are left blank, indicating that you should extrapolate what a response for that score might look like based on the provided examples.
+                You are tasked with grading student answers based on the provided rubric and/or grading scheme. Each entry in the grading rubric corresponds to a score. Some fields in the rubric are left blank, indicating that you should extrapolate what a response for that score might look like based on the provided examples.
 
                 Guidelines for Grading:
                 - Compare the student's response to the examples in the rubric.
                 - Assess how well the response covers the key concepts mentioned in the question.
                 - Evaluate the clarity, completeness, and accuracy of the explanation.
                 - Consider the depth of detail provided about any examples or tools mentioned.
-                - Assign the score that best matches the quality of the response according to the rubric.
+                - Assign the score that best matches the quality of the response according to the rubric and/or grading scheme.
 
                 Question Number: ${i + 1}
                 Question: ${question}
-                Rubric: ${JSON.stringify(scheme, null, 2)}
+                ${rubricSection}${gradingSchemeSection}
                 Answer: ${response}
                 The maximum score for this question is ${maxScore}. Do not provide any reasoning. Answer in JSON like this:
                 {questionNumber: ${i + 1}, score: '{YOUR SCORE}', maximumScore: ${maxScore}}
@@ -424,17 +430,23 @@ function renderResponses(responses, container) {
 }
 
 function exportToCSV(responses) {
-    const headers = ['Student Number', 'Response'];
-    const rows = responses.map(({ studentNumber, response }) => {
-        const formattedResponse = JSON.stringify(response).replace(/"/g, '""');
-        return `${studentNumber},"${formattedResponse}"`;
+    const headers = ['Student Number', 'Question Number', 'Score', 'Maximum Score'];
+
+    const rows = responses.map(response => {
+        const { studentNumber, questionNumber, score, maximumScore } = response;
+        return `${studentNumber},${questionNumber},${score},${maximumScore}`;
     });
 
     const csvContent = [headers.join(','), ...rows].join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv' });
+    
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.setAttribute('href', url);
     a.setAttribute('download', 'responses.csv');
+    document.body.appendChild(a);
     a.click();
+
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
 }
